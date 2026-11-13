@@ -2,7 +2,7 @@
 
 A minimal, dependency-free **composite GitHub Action** that checks whether a public GitHub Pages site exposes the expected deployment identity. It reads `deployproof.json` from the deployed site and compares four trusted identity fields.
 
-> **Preview only:** This project has passed local loopback tests but has **not** been tested in a real GitHub Actions workflow or deployed to GitHub Pages. It is not yet released. No adoption or user demand has been verified.
+> **Preview only:** Local tests and GitHub Actions CI have passed (18/18 tests). A real GitHub Pages deployment has **not** been tested. It is not yet released. No adoption or user demand has been verified.
 
 ## What this checks
 
@@ -69,7 +69,7 @@ After deploying the artifact, the verification step would be configured as follo
 python3 -m unittest discover -s tests -v
 ```
 
-Tests use a local HTTP server and an explicit test-only loopback override. The shipped Action rejects HTTP, arbitrary hostnames, IP literals, credentials, absolute manifest paths, and redirects. A GitHub Actions CI workflow is included but has **not run** in a GitHub repository.
+Tests use a local HTTP server and an explicit test-only loopback override. The shipped Action rejects HTTP, arbitrary hostnames, IP literals, credentials, absolute manifest paths, and redirects. GitHub Actions CI has run successfully on the private repository. Public GitHub Pages end-to-end verification is still pending.
 
 ## Current constraints
 
@@ -78,7 +78,7 @@ Tests use a local HTTP server and an explicit test-only loopback override. The s
 - Strict manifest size limit: 64 KiB; all four identifiers must be strings.
 - Supports bounded attempts, delay and timeout; retries missing/mismatched manifests and network errors.
 - Concurrency and superseding deployments are not detected automatically. A mismatch can mean a newer deployment replaced the expected one, not that Pages malfunctioned.
-- GitHub Actions runtime, CDN behavior, DNS edge cases, security scanning and public HTTPS deployment have **not** been tested.
+- GitHub Actions CI has been tested; public GitHub Pages, CDN behavior, DNS edge cases, security scanning and public HTTPS deployment have **not** been fully tested.
 
 ## Status
 
