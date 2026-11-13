@@ -85,6 +85,7 @@ jobs:
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Positive control - latest published build must match
+        id: positive
         uses: ./
         with:
           site-url: https://eluyz.github.io/deployproof/
@@ -95,6 +96,16 @@ jobs:
           attempts: '20'
           delay-seconds: '15'
           timeout-seconds: '10'
+
+      - name: Assert the positive verdict explicitly
+        if: ${{ !cancelled() }}
+        env:
+          OBSERVED_VERDICT: ${{ steps.positive.outputs.verdict }}
+        run: |
+          if [ "$OBSERVED_VERDICT" != "IDENTITY_PASS" ]; then
+            echo "Expected IDENTITY_PASS, got $OBSERVED_VERDICT" >&2
+            exit 1
+          fi
 
       - name: Negative control - wrong build ID must fail
         id: wrong_build
@@ -108,11 +119,16 @@ jobs:
           expected-build-id: intentionally-wrong-build-id
           attempts: '1'
 
-      - name: Assert the wrong-build check failed
-        if: ${{ steps.wrong_build.outcome != 'failure' }}
+      - name: Assert exact wrong-build failure
+        if: ${{ !cancelled() }}
+        env:
+          OBSERVED_OUTCOME: ${{ steps.wrong_build.outcome }}
+          OBSERVED_VERDICT: ${{ steps.wrong_build.outputs.verdict }}
         run: |
-          echo "Expected VERSION_MISMATCH to fail, but it did not."
-          exit 1
+          if [ "$OBSERVED_OUTCOME" != "failure" ] || [ "$OBSERVED_VERDICT" != "VERSION_MISMATCH" ]; then
+            echo "Expected failed VERSION_MISMATCH; got outcome=$OBSERVED_OUTCOME verdict=$OBSERVED_VERDICT" >&2
+            exit 1
+          fi
 
       - name: Negative control - missing manifest must fail
         id: missing_manifest
@@ -127,8 +143,13 @@ jobs:
           expected-build-id: ${{ needs.build.outputs.build_id }}
           attempts: '1'
 
-      - name: Assert the missing-manifest check failed
-        if: ${{ steps.missing_manifest.outcome != 'failure' }}
+      - name: Assert exact missing-manifest failure
+        if: ${{ !cancelled() }}
+        env:
+          OBSERVED_OUTCOME: ${{ steps.missing_manifest.outcome }}
+          OBSERVED_VERDICT: ${{ steps.missing_manifest.outputs.verdict }}
         run: |
-          echo "Expected MISSING_MANIFEST to fail, but it did not."
-          exit 1
+          if [ "$OBSERVED_OUTCOME" != "failure" ] || [ "$OBSERVED_VERDICT" != "MISSING_MANIFEST" ]; then
+            echo "Expected failed MISSING_MANIFEST; got outcome=$OBSERVED_OUTCOME verdict=$OBSERVED_VERDICT" >&2
+            exit 1
+          fi

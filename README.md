@@ -1,25 +1,47 @@
-# DeployProof (technical preview)
+# DeployProof — GitHub Pages deployment identity check
 
-A minimal, dependency-free **composite GitHub Action** that checks whether a public GitHub Pages site exposes the expected deployment identity. It reads `deployproof.json` from the deployed site and compares four trusted identity fields.
+DeployProof is a small Python-standard-library composite GitHub Action that checks whether a **public GitHub Pages deployment manifest** matches the identity produced by the build that was actually uploaded.
 
-> **Preview only:** Local tests and GitHub Actions CI have passed (18/18 tests). A real GitHub Pages deployment has **not** been tested. It is not yet released. No adoption or user demand has been verified.
+> **Technical preview, not released:** The private repository has passed GitHub Actions CI and controlled real GitHub Pages E2E tests. The public test page at https://eluyz.github.io/deployproof/ contains only generated test content. This repository is not yet available to external users as an installable public Action, and demand/adoption are unverified.
 
-## What this checks
+## What it verifies
 
-- `git_sha`: source revision, **not sufficient by itself**
-- `workflow_run_id`: workflow run that built the website
-- `run_attempt`: attempt number for the same workflow run
-- `build_id`: an identifier created by the build **before** uploading the site
+The static site must serve `deployproof.json` containing **four string fields**:
 
-A successful check is **`IDENTITY_PASS`, not `ARTIFACT_INTEGRITY_PASS`**. An up-to-date manifest can coexist with stale JS, CSS, images, or data files. Use asset-specific checks for those cases.
+```json
+{
+  "git_sha": "REPLACE_WITH_THE_BUILD_SOURCE_SHA",
+  "workflow_run_id": "REPLACE_WITH_THE_BUILD_WORKFLOW_RUN_ID",
+  "run_attempt": "REPLACE_WITH_THE_BUILD_WORKFLOW_ATTEMPT",
+  "build_id": "REPLACE_WITH_A_BUILD_ID_GENERATED_BEFORE_UPLOAD"
+}
+```
 
-## Minimal example (not yet published)
+The Action compares each field against a trusted expected value and fails with a machine-readable `verdict`. The available verdicts are `IDENTITY_PASS`, `VERSION_MISMATCH`, `MISSING_MANIFEST`, `INVALID_MANIFEST`, `INVALID_CONFIG`, `NETWORK_ERROR`, and `HTTP_ERROR`.
 
-First, create a manifest **in the directory that will be uploaded**, after the site has been built and before upload. For a Pages project under `/repo/`, the public manifest must appear at `https://owner.github.io/repo/deployproof.json`.
+**What it does not verify:** `IDENTITY_PASS` is **not** a hash, signature, asset-integrity check, browser smoke test, or proof that JS/CSS/images/data are fresh. An attacker or misconfigured build can publish a matching manifest while other files are stale. A later legitimate deployment can also replace the expected build.
+
+## Verified reference workflow
+
+The actual `.github/workflows/pages-e2e.yml` is a **complete, working reference**, with SHA-pinned official Actions and explicit build-to-deploy identity outputs. It publishes only synthetic files, then verifies the public Pages URL with one positive and two deliberately negative controls.
+
+Evidence: [real GitHub Pages E2E, including re-run](https://github.com/eluyz/deployproof/actions/runs/43506480136) and [unit tests on GitHub runners](https://github.com/eluyz/deployproof/actions/runs/43514419408).
+
+**Rerun rule:** `github.run_attempt` in a *re-run verification job* may differ from the `run_attempt` that produced the deployed artifact. Therefore, pass expected identities **from the build step/job outputs**, not from the verifying job's current workflow context. A rerun of the verifier job must continue checking the artifact's actual build identity.
+
+## Integration outline (for after the first public release)
+
+1. Configure GitHub Pages to deploy from **GitHub Actions**.
+2. Run your normal build (for example, generate `dist/index.html`).
+3. Before uploading `dist`, generate `dist/deployproof.json` and export the identical values as outputs of the **build step**.
+4. Expose those build step values as **build job outputs**. Upload the directory with a pinned `actions/upload-pages-artifact`.
+5. After deploying via a pinned `actions/deploy-pages`, check the live URL using a reviewed, pinned full SHA of DeployProof. Do not reference a nonexistent published tag.
+
+Build step example (a fragment to add **after** your build command):
 
 ```yaml
-# Example steps inside a GitHub Pages build job, after building ./dist.
-- name: Create deployment identity manifest
+- name: Generate the public build identity
+  id: identity
   shell: bash
   env:
     BUILD_SHA: ${{ github.sha }}
@@ -27,59 +49,77 @@ First, create a manifest **in the directory that will be uploaded**, after the s
     BUILD_RUN_ATTEMPT: ${{ github.run_attempt }}
   run: |
     python3 - <<'PY'
-    import json, os
+    import json
+    import os
     from pathlib import Path
-    sha, run, attempt = (os.environ[k] for k in ("BUILD_SHA", "BUILD_RUN_ID", "BUILD_RUN_ATTEMPT"))
-    manifest = {
-      "git_sha": sha,
-      "workflow_run_id": run,
-      "run_attempt": attempt,
-      "build_id": f"{run}-{attempt}-{sha}"
+    sha, run, attempt = (os.environ[k] for k in
+                         ("BUILD_SHA", "BUILD_RUN_ID", "BUILD_RUN_ATTEMPT"))
+    identity = {
+        "git_sha": sha,
+        "workflow_run_id": run,
+        "run_attempt": attempt,
+        "build_id": f"{run}-{attempt}-{sha}",
     }
-    Path("dist/deployproof.json").write_text(json.dumps(manifest), encoding="utf-8")
+    Path("dist/deployproof.json").write_text(
+        json.dumps(identity), encoding="utf-8"
+    )
+    with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+        for key, value in identity.items():
+            out.write(f"{key}={value}\n")
     PY
-
-- uses: actions/upload-pages-artifact@v4
-  with:
-    path: ./dist
 ```
 
-After deploying the artifact, the verification step would be configured as follows. Replace `YOUR_ORG/deployproof@FULL_40_CHARACTER_COMMIT_SHA` **only when a reviewed version is actually published**. Pin its full commit SHA rather than using an unreviewed tag. The expected values must describe the **build artifact**, not an unrelated verification job:
+At the **build job** level, export the values to the downstream deploy job:
 
 ```yaml
-- name: Verify deployed build identity
-  uses: YOUR_ORG/deployproof@FULL_40_CHARACTER_COMMIT_SHA # Not published; replace after release
-  with:
-    site-url: https://owner.github.io/repo/
-    expected-sha: ${{ github.sha }}
-    expected-run-id: ${{ github.run_id }}
-    expected-run-attempt: ${{ github.run_attempt }}
-    expected-build-id: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+outputs:
+  git_sha: ${{ steps.identity.outputs.git_sha }}
+  workflow_run_id: ${{ steps.identity.outputs.workflow_run_id }}
+  run_attempt: ${{ steps.identity.outputs.run_attempt }}
+  build_id: ${{ steps.identity.outputs.build_id }}
 ```
 
-**Important:** The `expected-build-id` expression must match the build step exactly; in this example, both use `run_id-run_attempt-full_sha`. For a different build or workflow, transfer trusted IDs explicitly as job outputs or artifacts. Replace all placeholder URLs and Action references before using the workflow.
+After deploying, your **deploy job** must declare `needs: build` and can check the public site:
 
-## Why use `deployproof.json` instead of `.well-known/deployproof.json`?
+```yaml
+- name: Verify the deployed build
+  id: deployproof
+  uses: eluyz/deployproof@REPLACE_WITH_REVIEWED_FULL_40_CHARACTER_COMMIT_SHA
+  with:
+    site-url: https://OWNER.github.io/REPO/
+    manifest-path: deployproof.json
+    expected-sha: ${{ needs.build.outputs.git_sha }}
+    expected-run-id: ${{ needs.build.outputs.workflow_run_id }}
+    expected-run-attempt: ${{ needs.build.outputs.run_attempt }}
+    expected-build-id: ${{ needs.build.outputs.build_id }}
+    attempts: '5'
+    delay-seconds: '2'
+    timeout-seconds: '10'
+```
 
-`actions/upload-pages-artifact@v4` unconditionally omits dotfiles and dot-directories. `@v5` supports `include-hidden-files`, which is disabled by default. An ordinary `deployproof.json` avoids unintentionally omitting the manifest and avoids publishing other hidden files.
+After an Action step, other steps can use `steps.deployproof.outputs.verdict`. The Action returns exit status 0 only on `IDENTITY_PASS` and nonzero for every failure. Failure categories are exposed even when the Action exits nonzero, so a testing workflow can assert the exact kind rather than treating every failure as a correct negative test.
 
-## Local tests
+**Important:** The examples above are snippets and are not complete workflow YAML by themselves. The complete working workflow is `.github/workflows/pages-e2e.yml`; adapt its build and site URL to your own repository. The public Action reference above is intentionally **not yet installable** because this repo is still private and no public release exists.
+
+## Compatibility and security boundaries
+
+- Only `https://*.github.io/` hosts are accepted. Use the exact site root with a trailing slash; project Pages sites need `https://OWNER.github.io/REPO/`. Custom domains (and their redirects), HTTP, IPs, credentials and nonstandard ports are not supported in this preview.
+- Manifest paths must be relative, without escapes/dot segments. HTTP redirects are not followed. Responses are limited to 64 KiB and duplicate JSON keys are rejected.
+- Requests have bounded retries, intervals and timeouts. Retries address publication delay, **not** an assurance of CDN-wide freshness.
+- The GitHub Pages manifest is public: the commit SHA, workflow run ID, attempt and build ID will be **public metadata**, even if the source repository is private. Never put secrets, tokens, internal URLs or personal data in it.
+- The public manifest is untrusted input; expected identity values must originate from the trusted build job. No cryptographic provenance is established.
+- The composite Action uses the runner's `python3` standard library. Review upstream runner/network settings and pinned Action dependencies before deploying production workloads.
+- `actions/upload-pages-artifact@v4` omits dotfiles/dotdirectories unconditionally. `@v5` can opt in to hidden files, but defaults to excluding them. This project uses a normal `deployproof.json` to avoid exposing other hidden artifacts.
+
+## Tests
 
 ```bash
 python3 -m unittest discover -s tests -v
+python3 -m compileall -q scripts tests
 ```
 
-Tests use a local HTTP server and an explicit test-only loopback override. The shipped Action rejects HTTP, arbitrary hostnames, IP literals, credentials, absolute manifest paths, and redirects. GitHub Actions CI has run successfully on the private repository. Public GitHub Pages end-to-end verification is still pending.
+CI exercises a local loopback HTTP server, while the separate Pages E2E workflow tests an actual public HTTPS deployment, including intentionally failing checks and job re-runs. Passing these tests does not establish correctness for every site, custom domain, proxy or CDN configuration.
 
-## Current constraints
+## License and status
 
-- GitHub Pages `*.github.io` domains only; no custom domains in this preview.
-- Requires Python 3 on the runner; designed for `ubuntu-latest` hosted runners.
-- Strict manifest size limit: 64 KiB; all four identifiers must be strings.
-- Supports bounded attempts, delay and timeout; retries missing/mismatched manifests and network errors.
-- Concurrency and superseding deployments are not detected automatically. A mismatch can mean a newer deployment replaced the expected one, not that Pages malfunctioned.
-- GitHub Actions CI has been tested; public GitHub Pages, CDN behavior, DNS edge cases, security scanning and public HTTPS deployment have **not** been fully tested.
-
-## Status
-
-**Local preview / educational experiment.** No installation instructions or release promises should be treated as evidence of a production-ready Action.
+MIT — see [LICENSE](LICENSE). **Technical preview:** private repository, no public release, no verified external installations or user adoption. Sensitive security issues should not be disclosed via public issue comments; see [SECURITY.md](SECURITY.md).
