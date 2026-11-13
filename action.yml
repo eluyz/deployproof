@@ -1,0 +1,54 @@
+name: DeployProof (preview)
+description: Check whether a public GitHub Pages manifest matches the expected build identity
+branding:
+  icon: check-circle
+  color: blue
+inputs:
+  site-url:
+    description: HTTPS URL of the GitHub Pages site root, ending with a slash (e.g. https://owner.github.io/repo/)
+    required: true
+  expected-sha:
+    description: Trusted git SHA from the build job
+    required: true
+  expected-run-id:
+    description: Trusted workflow run ID from the build job
+    required: true
+  expected-run-attempt:
+    description: Trusted workflow run attempt from the build job
+    required: true
+  expected-build-id:
+    description: Trusted ID embedded in the built site, generated before upload
+    required: true
+  manifest-path:
+    description: Relative path to the public JSON manifest
+    required: false
+    default: deployproof.json
+  attempts:
+    description: Maximum checks including the first one (1-20)
+    required: false
+    default: '5'
+  delay-seconds:
+    description: Delay between checks in seconds (0-30)
+    required: false
+    default: '2'
+  timeout-seconds:
+    description: Request timeout in seconds (1-30)
+    required: false
+    default: '10'
+runs:
+  using: composite
+  steps:
+    - name: Verify publicly served deployment identity
+      shell: bash
+      env:
+        DP_SITE_URL: ${{ inputs.site-url }}
+        DP_EXPECTED_SHA: ${{ inputs.expected-sha }}
+        DP_EXPECTED_RUN_ID: ${{ inputs.expected-run-id }}
+        DP_EXPECTED_RUN_ATTEMPT: ${{ inputs.expected-run-attempt }}
+        DP_EXPECTED_BUILD_ID: ${{ inputs.expected-build-id }}
+        DP_MANIFEST_PATH: ${{ inputs.manifest-path }}
+        DP_ATTEMPTS: ${{ inputs.attempts }}
+        DP_DELAY_SECONDS: ${{ inputs.delay-seconds }}
+        DP_TIMEOUT_SECONDS: ${{ inputs.timeout-seconds }}
+        DP_ACTION_PATH: ${{ github.action_path }}
+      run: python3 "$DP_ACTION_PATH/scripts/verify.py"
