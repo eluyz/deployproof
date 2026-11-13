@@ -1,0 +1,125 @@
+name: Controlled GitHub Pages end-to-end test
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/pages-e2e.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deployproof-pages-e2e
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build synthetic test site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate public test files only
+        shell: bash
+        env:
+          BUILD_SHA: ${{ github.sha }}
+          BUILD_RUN_ID: ${{ github.run_id }}
+          BUILD_RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          out = Path("_site")
+          out.mkdir(exist_ok=True)
+          sha = os.environ["BUILD_SHA"]
+          run_id = os.environ["BUILD_RUN_ID"]
+          attempt = os.environ["BUILD_RUN_ATTEMPT"]
+          manifest = {
+              "git_sha": sha,
+              "workflow_run_id": run_id,
+              "run_attempt": attempt,
+              "build_id": f"{run_id}-{attempt}-{sha}",
+          }
+          (out / "deployproof.json").write_text(json.dumps(manifest), encoding="utf-8")
+          (out / "index.html").write_text(
+              "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\">"
+              "<title>DeployProof E2E test</title>"
+              "<body><h1>DeployProof E2E test</h1>"
+              "<p>Synthetic public test page. No personal data or source files.</p>"
+              "</body></html>", encoding="utf-8"
+          )
+          print("Generated _site/index.html and _site/deployproof.json")
+          PY
+
+      - name: Upload synthetic Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
+        with:
+          path: _site
+
+  deploy-and-verify:
+    name: Deploy synthetic site and test positive and negative cases
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy test artifact to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
+
+      - name: Check out the private action under test
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Positive control - latest published build must match
+        uses: ./
+        with:
+          site-url: https://eluyz.github.io/deployproof/
+          expected-sha: ${{ github.sha }}
+          expected-run-id: ${{ github.run_id }}
+          expected-run-attempt: ${{ github.run_attempt }}
+          expected-build-id: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          attempts: '20'
+          delay-seconds: '15'
+          timeout-seconds: '10'
+
+      - name: Negative control - wrong build ID must fail
+        id: wrong_build
+        continue-on-error: true
+        uses: ./
+        with:
+          site-url: https://eluyz.github.io/deployproof/
+          expected-sha: ${{ github.sha }}
+          expected-run-id: ${{ github.run_id }}
+          expected-run-attempt: ${{ github.run_attempt }}
+          expected-build-id: intentionally-wrong-build-id
+          attempts: '1'
+
+      - name: Assert the wrong-build check failed
+        if: ${{ steps.wrong_build.outcome != 'failure' }}
+        run: |
+          echo "Expected VERSION_MISMATCH to fail, but it did not."
+          exit 1
+
+      - name: Negative control - missing manifest must fail
+        id: missing_manifest
+        continue-on-error: true
+        uses: ./
+        with:
+          site-url: https://eluyz.github.io/deployproof/
+          manifest-path: missing-deployproof-e2e-test.json
+          expected-sha: ${{ github.sha }}
+          expected-run-id: ${{ github.run_id }}
+          expected-run-attempt: ${{ github.run_attempt }}
+          expected-build-id: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          attempts: '1'
+
+      - name: Assert the missing-manifest check failed
+        if: ${{ steps.missing_manifest.outcome != 'failure' }}
+        run: |
+          echo "Expected MISSING_MANIFEST to fail, but it did not."
+          exit 1
