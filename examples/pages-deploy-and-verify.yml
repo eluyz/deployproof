@@ -102,4 +102,5 @@ jobs:
         if: ${{ always() && steps.proof.outputs.verdict != '' }}
         env:
           VERDICT: ${{ steps.proof.outputs.verdict }}
-        run: echo "DeployProof verdict: $VERDICT"
+        run: |
+          echo "DeployProof verdict: $VERDICT"

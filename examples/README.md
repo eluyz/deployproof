@@ -16,3 +16,18 @@ To try it **after publication**:
 The Action verifies **deployment identity only**, not individual JS/CSS/data assets. The manifest's SHA and workflow IDs are **public metadata** even for a private source repository. Never include secrets.
 
 Validated against our **same-repository synthetic E2E tests**: [run 43515181535](https://github.com/eluyz/deployproof/actions/runs/43515181535). Copying into an independent repository has **not** yet been tested.
+
+
+## Validating this template before publication
+
+CI parses the example with PyYAML 6.0.3 and executes its identity-generation
+script with synthetic build IDs, including a rerun attempt. PyYAML is a
+**test-only** dependency: DeployProof itself uses only Python's standard library.
+
+Development validation commands:
+
+    python3 -m pip install PyYAML==6.0.3
+    python3 scripts/validate_release_example.py
+
+These checks establish YAML parsing and generated identity behavior, **not**
+a successful installation from a different public repository.

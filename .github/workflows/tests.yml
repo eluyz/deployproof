@@ -13,3 +13,7 @@ jobs:
         run: python3 -m compileall -q scripts tests
       - name: Run unit and local HTTP integration tests
         run: python3 -m unittest discover -s tests -v
+      - name: Install YAML validator (CI only)
+        run: python3 -m pip install --disable-pip-version-check PyYAML==6.0.3
+      - name: Validate release workflow template
+        run: python3 scripts/validate_release_example.py
