@@ -97,6 +97,18 @@ def main() -> None:
             if source.startswith("actions/"):
                 require(re.fullmatch(r"actions/[^@]+@[0-9a-f]{40}", source),
                         f"official action not pinned: {source}")
+    for metadata_path in ("action.yml", ".github/workflows/tests.yml",
+                          ".github/workflows/pages-e2e.yml"):
+        parsed = yaml.load((ROOT / metadata_path).read_text(encoding="utf-8"),
+                           Loader=yaml.BaseLoader)
+        require(isinstance(parsed, dict), f"invalid YAML mapping: {metadata_path}")
+        require("name" in parsed, f"missing name in {metadata_path}")
+        if metadata_path == "action.yml":
+            require(parsed.get("runs", {}).get("using") == "composite",
+                    "Action runtime must stay composite")
+            require(parsed.get("outputs", {}).get("verdict") is not None,
+                    "Action must expose verdict output")
+    print("PASS: Action/workflow YAML syntax validated")
     print("PASS: YAML parsed, build outputs trusted, Actions pinned, placeholders explicit")
 
 

@@ -2,16 +2,26 @@
 
 Status: **BLOCKED ON EXPLICIT OWNER APPROVAL AND PUBLIC INSTALLATION TEST**.
 
+Security-review scope: checked all 11 reachable main commits' changed-file lists,
+22 historical changed-file contents and all 15 current candidate blobs for
+common high-risk credential signatures (GitHub PAT/classic tokens, AWS access
+keys, OpenAI-style keys, Slack tokens and private-key PEM headers). No
+signatures matched. **This is a targeted pattern review, not proof that the
+history is secret-free.** GitHub Actions workflow permissions and published
+Pages manifest metadata require a final owner check before making the
+repository public.
+
 | Check | Evidence or status |
 | --- | --- |
 | Product scope: GitHub Pages identity-only | PASS — README and SECURITY.md explicitly state limits |
 | Unit/local HTTP suite | PASS — 23 tests on GitHub CI, run 43515181573 |
 | Actual Pages E2E | PASS — run 43515181535 |
+| Release example YAML and manifest generation | PASS — PR CI 43518247242 on da289d68: PyYAML parse, synthetic build attempts 1 and 2, trusted job outputs |
 | Rerun provenance | PASS — build outputs preserved across verifier job reruns; run 43506480136 |
 | SHA-pinned Action reference in same private repo | PASS — run 43515181535 |
 | External repo invokes public Action | NOT RUN — repository remains private |
 | MIT license choice | PENDING — MIT staged, owner confirmation required |
-| Public repository and history review | PENDING — explicit authorization required |
+| Public repository and history review | PARTIAL — 11 main-branch commits and 22 historical changed-file versions checked; 15 current candidate files checked for several common token/key signatures; no patterns detected. Not a full secrets audit; owner final review pending |
 | Trademark / existing project name overlap | WARNING — GitHub Marketplace already displays a different "DeployProof" Action; another project uses deployproof. Check uniqueness before publishing |
 | Third-party security penetration test | NOT RUN — not promised for preview; explicit known limitations |
 | GitHub version tag v0.1.0 | NOT CREATED |
