@@ -35,10 +35,15 @@ inputs:
     description: Request timeout in seconds (1-30)
     required: false
     default: '10'
+outputs:
+  verdict:
+    description: Machine-readable result category (IDENTITY_PASS, VERSION_MISMATCH, MISSING_MANIFEST, or error)
+    value: ${{ steps.verify.outputs.verdict }}
 runs:
   using: composite
   steps:
     - name: Verify publicly served deployment identity
+      id: verify
       shell: bash
       env:
         DP_SITE_URL: ${{ inputs.site-url }}

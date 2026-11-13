@@ -2,10 +2,13 @@
 import contextlib
 import importlib.util
 import json
+import os
+import tempfile
 import threading
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location("deployproof_verify", Path(__file__).resolve().parents[1] / "scripts" / "verify.py")
 verify_module = importlib.util.module_from_spec(spec)
@@ -128,6 +131,35 @@ class DeployProofTests(unittest.TestCase):
         self.set_manifest(EXPECTED)
         invalid = verify_module.verify(self.site, "deployproof.json", {**EXPECTED,"build_id":""},attempts=1,allow_test_loopback=True)
         self.assertEqual(invalid.kind, "INVALID_CONFIG")
+
+    def test_empty_username_is_rejected(self):
+        with self.assertRaises(ValueError):
+            verify_module.validate_url("https://@owner.github.io/repo/", "deployproof.json")
+
+    def test_encoded_site_root_is_rejected(self):
+        with self.assertRaises(ValueError):
+            verify_module.validate_url("https://owner.github.io/%41/", "deployproof.json")
+
+    def test_duplicate_identity_key_is_rejected(self):
+        payload = json.dumps(EXPECTED).replace('"git_sha":', '"git_sha": "fake", "git_sha":', 1)
+        FakeSiteHandler.responses["/repo/deployproof.json"] = [(200, payload.encode())]
+        self.assertEqual(self.check().kind, "INVALID_MANIFEST")
+
+    def test_verdict_output_written_on_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "github-output"
+            with patch.dict(os.environ, {"GITHUB_OUTPUT": str(path)}):
+                verify_module.emit_output(
+                    verify_module.Result("VERSION_MISMATCH", "Different field(s): build_id")
+                )
+            self.assertEqual(path.read_text(encoding="utf-8"), "verdict=VERSION_MISMATCH\\n".replace("\\\\n", "\\n"))
+
+    def test_mismatch_does_not_log_identity_values(self):
+        self.set_manifest({**EXPECTED, "build_id": "observed-private-build"})
+        result = self.check()
+        self.assertEqual(result.kind, "VERSION_MISMATCH")
+        self.assertNotIn("observed-private-build", result.details)
+        self.assertNotIn("site-2", result.details)
 
 
 if __name__ == "__main__":

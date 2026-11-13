@@ -42,7 +42,7 @@ def validate_url(site_url, manifest_path, *, allow_test_loopback=False):
     parsed = urlsplit(site_url)
     if not parsed.netloc or not parsed.hostname:
         raise ValueError("site-url must include a hostname")
-    if parsed.username or parsed.password or parsed.query or parsed.fragment:
+    if parsed.username is not None or parsed.password is not None or parsed.query or parsed.fragment:
         raise ValueError("site-url must not contain credentials, query or fragment")
     if site_url != site_url.strip() or any(ord(c) < 33 for c in site_url):
         raise ValueError("site-url contains whitespace or control characters")
@@ -60,8 +60,8 @@ def validate_url(site_url, manifest_path, *, allow_test_loopback=False):
             raise ValueError("local test requires explicit port")
     elif parsed.scheme != "https" or port not in (None, 443) or not parsed.hostname.endswith(".github.io"):
         raise ValueError("only HTTPS *.github.io sites are supported")
-    if re.search(r"%(?:2f|5c|2e|3f|23)", parsed.path, flags=re.I):
-        raise ValueError("encoded separators or dot segments are not supported")
+    if "%" in parsed.path:
+        raise ValueError("encoded site-url paths are not supported")
     if any(p in (".", "..") for p in unquote(parsed.path).split("/")):
         raise ValueError("site-url must not contain dot segments")
     if not manifest_path or any(c in manifest_path for c in ("\\", "?", "#", ":")):
@@ -71,6 +71,16 @@ def validate_url(site_url, manifest_path, *, allow_test_loopback=False):
     if re.search(r"%|[\x00-\x20]", manifest_path):
         raise ValueError("manifest-path must not contain encoded or whitespace characters")
     return urljoin(site_url, manifest_path)
+
+
+def _unique_json_object(pairs):
+    """Fail closed on duplicate JSON keys to avoid ambiguous identities."""
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate JSON property")
+        result[key] = value
+    return result
 
 
 def _read_manifest(url, timeout_seconds):
@@ -90,7 +100,7 @@ def _read_manifest(url, timeout_seconds):
     if len(content) > MAX_MANIFEST_BYTES:
         return Result("INVALID_MANIFEST", "manifest exceeds 64 KiB limit")
     try:
-        data = json.loads(content)
+        data = json.loads(content, object_pairs_hook=_unique_json_object)
     except (json.JSONDecodeError, UnicodeDecodeError, ValueError):
         return Result("INVALID_MANIFEST", "response body is not valid JSON")
     if not isinstance(data, dict) or not all(isinstance(data.get(key), str) for key in FIELDS):
@@ -130,6 +140,14 @@ def verify(site_url, manifest_path, expected, *, attempts=5, delay_seconds=2, ti
     return last
 
 
+def emit_output(result):
+    """Expose the outcome even when the Action exits nonzero."""
+    destination = os.environ.get("GITHUB_OUTPUT")
+    if destination:
+        with open(destination, "a", encoding="utf-8") as output:
+            output.write(f"verdict={result.kind}\n")
+
+
 def _env_int(name, default):
     try:
         return int(os.environ.get(name, str(default)))
@@ -153,6 +171,7 @@ def main():
         timeout_seconds=_env_int("DP_TIMEOUT_SECONDS", 10),
     )
     print(f"RESULT: {result.kind} - {result.details}")
+    emit_output(result)
     return 0 if result.success else 1
 
 
