@@ -17,8 +17,14 @@ jobs:
   build:
     name: Build synthetic test site
     runs-on: ubuntu-latest
+    outputs:
+      git_sha: ${{ steps.identity.outputs.git_sha }}
+      workflow_run_id: ${{ steps.identity.outputs.workflow_run_id }}
+      run_attempt: ${{ steps.identity.outputs.run_attempt }}
+      build_id: ${{ steps.identity.outputs.build_id }}
     steps:
       - name: Generate public test files only
+        id: identity
         shell: bash
         env:
           BUILD_SHA: ${{ github.sha }}
@@ -48,6 +54,9 @@ jobs:
               "<p>Synthetic public test page. No personal data or source files.</p>"
               "</body></html>", encoding="utf-8"
           )
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              for key, value in manifest.items():
+                  output.write(f"{key}={value}\n")
           print("Generated _site/index.html and _site/deployproof.json")
           PY
 
@@ -79,10 +88,10 @@ jobs:
         uses: ./
         with:
           site-url: https://eluyz.github.io/deployproof/
-          expected-sha: ${{ github.sha }}
-          expected-run-id: ${{ github.run_id }}
-          expected-run-attempt: ${{ github.run_attempt }}
-          expected-build-id: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          expected-sha: ${{ needs.build.outputs.git_sha }}
+          expected-run-id: ${{ needs.build.outputs.workflow_run_id }}
+          expected-run-attempt: ${{ needs.build.outputs.run_attempt }}
+          expected-build-id: ${{ needs.build.outputs.build_id }}
           attempts: '20'
           delay-seconds: '15'
           timeout-seconds: '10'
@@ -93,9 +102,9 @@ jobs:
         uses: ./
         with:
           site-url: https://eluyz.github.io/deployproof/
-          expected-sha: ${{ github.sha }}
-          expected-run-id: ${{ github.run_id }}
-          expected-run-attempt: ${{ github.run_attempt }}
+          expected-sha: ${{ needs.build.outputs.git_sha }}
+          expected-run-id: ${{ needs.build.outputs.workflow_run_id }}
+          expected-run-attempt: ${{ needs.build.outputs.run_attempt }}
           expected-build-id: intentionally-wrong-build-id
           attempts: '1'
 
@@ -112,10 +121,10 @@ jobs:
         with:
           site-url: https://eluyz.github.io/deployproof/
           manifest-path: missing-deployproof-e2e-test.json
-          expected-sha: ${{ github.sha }}
-          expected-run-id: ${{ github.run_id }}
-          expected-run-attempt: ${{ github.run_attempt }}
-          expected-build-id: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          expected-sha: ${{ needs.build.outputs.git_sha }}
+          expected-run-id: ${{ needs.build.outputs.workflow_run_id }}
+          expected-run-attempt: ${{ needs.build.outputs.run_attempt }}
+          expected-build-id: ${{ needs.build.outputs.build_id }}
           attempts: '1'
 
       - name: Assert the missing-manifest check failed
