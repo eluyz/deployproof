@@ -1,0 +1,105 @@
+# Copy this file to .github/workflows/pages.yml in YOUR site's repository.
+# This is a demonstration, not yet a verified external installation.
+# Adapt the build step and replace both site URL and Action release SHA.
+name: Publish Pages and verify build identity
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-pages-deployment
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      git_sha: ${{ steps.identity.outputs.git_sha }}
+      workflow_run_id: ${{ steps.identity.outputs.workflow_run_id }}
+      run_attempt: ${{ steps.identity.outputs.run_attempt }}
+      build_id: ${{ steps.identity.outputs.build_id }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Build a demonstration static site
+        shell: bash
+        run: |
+          # Replace this with your actual build command, e.g. npm ci && npm run build.
+          mkdir -p dist
+          printf '%s\n' '<!doctype html><html><title>Pages</title><h1>Example site</h1></html>' > dist/index.html
+
+      - name: Write public build identity BEFORE uploading
+        id: identity
+        shell: bash
+        env:
+          BUILD_SHA: ${{ github.sha }}
+          BUILD_RUN_ID: ${{ github.run_id }}
+          BUILD_RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          sha = os.environ["BUILD_SHA"]
+          run_id = os.environ["BUILD_RUN_ID"]
+          attempt = os.environ["BUILD_RUN_ATTEMPT"]
+          identity = {
+              "git_sha": sha,
+              "workflow_run_id": run_id,
+              "run_attempt": attempt,
+              "build_id": f"{run_id}-{attempt}-{sha}",
+          }
+          Path("dist/deployproof.json").write_text(
+              json.dumps(identity), encoding="utf-8"
+          )
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              for key, value in identity.items():
+                  out.write(f"{key}={value}\n")
+          PY
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: pages
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
+
+      - name: Verify live deployment identity
+        id: proof
+        # Only available after DeployProof's repository becomes public.
+        # Replace with the reviewed SHA of the released Action.
+        uses: eluyz/deployproof@REPLACE_WITH_REVIEWED_RELEASE_COMMIT_SHA
+        with:
+          site-url: https://YOUR_USERNAME.github.io/YOUR_REPOSITORY/
+          expected-sha: ${{ needs.build.outputs.git_sha }}
+          expected-run-id: ${{ needs.build.outputs.workflow_run_id }}
+          expected-run-attempt: ${{ needs.build.outputs.run_attempt }}
+          expected-build-id: ${{ needs.build.outputs.build_id }}
+          attempts: '5'
+          delay-seconds: '2'
+          timeout-seconds: '10'
+
+      - name: Log the verdict
+        if: ${{ always() && steps.proof.outputs.verdict != '' }}
+        env:
+          VERDICT: ${{ steps.proof.outputs.verdict }}
+        run: echo "DeployProof verdict: $VERDICT"
