@@ -107,6 +107,28 @@ jobs:
             exit 1
           fi
 
+      - name: Verify installation via a pinned remote Action reference
+        id: remote_action
+        uses: eluyz/deployproof@40c66baa4563339ce24a131c79bbddd694fb7c34 # Previously tested commit; same private repository
+        with:
+          site-url: https://eluyz.github.io/deployproof/
+          expected-sha: ${{ needs.build.outputs.git_sha }}
+          expected-run-id: ${{ needs.build.outputs.workflow_run_id }}
+          expected-run-attempt: ${{ needs.build.outputs.run_attempt }}
+          expected-build-id: ${{ needs.build.outputs.build_id }}
+          attempts: '3'
+          delay-seconds: '2'
+
+      - name: Assert remote Action returned a positive verdict
+        if: ${{ !cancelled() }}
+        env:
+          OBSERVED_VERDICT: ${{ steps.remote_action.outputs.verdict }}
+        run: |
+          if [ "$OBSERVED_VERDICT" != "IDENTITY_PASS" ]; then
+            echo "Remote Action did not return IDENTITY_PASS: $OBSERVED_VERDICT" >&2
+            exit 1
+          fi
+
       - name: Negative control - wrong build ID must fail
         id: wrong_build
         continue-on-error: true
