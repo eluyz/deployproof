@@ -25,7 +25,7 @@ The Action compares each field against a trusted expected value and fails with a
 
 The actual `.github/workflows/pages-e2e.yml` is a **complete, working reference**, with SHA-pinned official Actions and explicit build-to-deploy identity outputs. It publishes only synthetic files, then verifies the public Pages URL with one positive and two deliberately negative controls.
 
-Evidence: [real GitHub Pages E2E, including re-run](https://github.com/eluyz/deployproof/actions/runs/43506480136) and [unit tests on GitHub runners](https://github.com/eluyz/deployproof/actions/runs/43514419408).
+Evidence: [real GitHub Pages E2E, including re-run](https://github.com/eluyz/deployproof/actions/runs/43514695315) and [unit tests on GitHub runners](https://github.com/eluyz/deployproof/actions/runs/43514695329).
 
 **Rerun rule:** `github.run_attempt` in a *re-run verification job* may differ from the `run_attempt` that produced the deployed artifact. Therefore, pass expected identities **from the build step/job outputs**, not from the verifying job's current workflow context. A rerun of the verifier job must continue checking the artifact's actual build identity.
 

@@ -4,7 +4,7 @@ DeployProof is a small open-source learning project and is not yet a production 
 
 ## Reporting a vulnerability
 
-Do **not** publish exploit details, credentials or private repository information in public GitHub issues or comments. If GitHub's private vulnerability reporting is enabled for this repository, use that channel. Otherwise, contact the repository owner privately through GitHub and share only the minimum information needed to coordinate a secure report. No external security contact address is currently advertised.
+Do **not** publish exploit details, credentials or private repository information in public GitHub issues or comments. If GitHub's private vulnerability reporting is enabled for this repository, use that channel. If private reporting is not available, open a **non-sensitive** GitHub issue asking for a secure reporting channel, without including exploit steps or confidential data. No external security contact address is currently advertised.
 
 ## Trust boundaries
 
