@@ -152,7 +152,7 @@ class DeployProofTests(unittest.TestCase):
                 verify_module.emit_output(
                     verify_module.Result("VERSION_MISMATCH", "Different field(s): build_id")
                 )
-            self.assertEqual(path.read_text(encoding="utf-8"), "verdict=VERSION_MISMATCH\\n".replace("\\\\n", "\\n"))
+            self.assertEqual(path.read_text(encoding="utf-8"), "verdict=VERSION_MISMATCH\n".replace("\\n", "\n"))
 
     def test_mismatch_does_not_log_identity_values(self):
         self.set_manifest({**EXPECTED, "build_id": "observed-private-build"})
