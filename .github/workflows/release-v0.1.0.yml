@@ -1,0 +1,106 @@
+name: Publish v0.1.0 technical preview
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/release-v0.1.0.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deployproof-publish-v0.1.0
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Validate source and public availability
+    if: github.repository == 'eluyz/deployproof'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Compile and run unit/local HTTP tests
+        run: |
+          python3 -m compileall -q scripts tests
+          python3 -m unittest discover -s tests -v
+
+      - name: Install CI-only YAML validator
+        run: python3 -m pip install --disable-pip-version-check PyYAML==6.0.3
+
+      - name: Check example workflow, provenance and source metadata
+        run: |
+          python3 scripts/validate_release_example.py
+          python3 - <<'PY'
+          from pathlib import Path
+          assert Path("action.yml").read_text().startswith(
+              "name: GitHub Pages Build Identity Check\n"
+          )
+          license_text = Path("LICENSE").read_text()
+          assert license_text.startswith("MIT License\n")
+          assert "Copyright (c) 2026 eluyz" in license_text
+          notes = Path("docs/RELEASE_NOTES_v0.1.0.md").read_text()
+          assert notes.startswith("# DeployProof v0.1.0 — Initial public technical preview")
+          assert "NOT TESTED" in notes
+          assert "identity" in notes.lower()
+          print("PASS: license, Action name and transparent release notes")
+          PY
+
+      - name: Verify anonymous access to the public source
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          url="https://raw.githubusercontent.com/eluyz/deployproof/${RELEASE_SHA}/action.yml"
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent --show-error --max-time 15 "$url" \
+               | grep -q '^name: GitHub Pages Build Identity Check$'; then
+              echo "PASS: public Action source is anonymously readable"
+              exit 0
+            fi
+            if [ "$attempt" -lt 5 ]; then sleep 2; fi
+          done
+          echo "Public Action source is not reachable at candidate SHA" >&2
+          exit 1
+
+  publish:
+    name: Create one v0.1.0 GitHub prerelease
+    needs: verify
+    if: github.repository == 'eluyz/deployproof' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out vetted source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Create v0.1.0 prerelease once
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ github.sha }}
+          GH_REPO: eluyz/deployproof
+        run: |
+          set -euo pipefail
+          if gh release view v0.1.0 --repo "$GH_REPO" >/dev/null 2>&1; then
+            echo "Release already exists; refusing duplicate publication" >&2
+            exit 1
+          fi
+          if gh api "repos/$GH_REPO/git/ref/tags/v0.1.0" >/dev/null 2>&1; then
+            echo "Tag already exists; refusing to change it" >&2
+            exit 1
+          fi
+          gh release create v0.1.0 \
+            --repo "$GH_REPO" \
+            --target "$RELEASE_SHA" \
+            --title "v0.1.0 — Initial Technical Preview" \
+            --notes-file docs/RELEASE_NOTES_v0.1.0.md \
+            --prerelease
+          echo "Published v0.1.0 from ${RELEASE_SHA}"
