@@ -1,6 +1,6 @@
 # v0.1.0 release gate (internal; NOT a release)
 
-Status: **v0.1.0 PUBLIC PRERELEASE VERIFIED — RELEASE GATE PASSED FOR SCOPED TECHNICAL PREVIEW**. Cross-repository consumer installation remains **NOT TESTED**, and asset-integrity verification is outside scope.
+Status: **v0.1.0 PUBLIC PRERELEASE VERIFIED — RELEASE GATE PASSED FOR SCOPED TECHNICAL PREVIEW**. Owner-controlled cross-repository consumer smoke has **PASSED** (2026-11-14; private evidence), while production deployment provenance and independent adoption remain **NOT TESTED**, and asset-integrity verification is outside scope.
 
 Owner approved public visibility, MIT and display name **GitHub Pages Build Identity Check** on 2026-11-14. Repository visibility was independently verified as **PUBLIC** on 2026-11-14. This does not prove cross-repo installation.
 
@@ -21,7 +21,7 @@ repository public.
 | Release example YAML and manifest generation | PASS — PR CI 43518247242 on da289d68: PyYAML parse, synthetic build attempts 1 and 2, trusted job outputs |
 | Rerun provenance | PASS — build outputs preserved across verifier job reruns; run 43506480136 |
 | SHA-pinned Action reference in same private repo | PASS — run 43515181535 |
-| External repo invokes public Action | **NOT TESTED** — no separately authorized consumer repo available; disclose explicitly in initial prerelease |
+| External repo invokes public Action | **PASS (2026-11-14)** — private owner-controlled `eluyz/deployproof-consumer-test`, run [43600664871](https://github.com/eluyz/deployproof-consumer-test/actions/runs/43600664871), exact positive / two negative checks (only authorized users can view logs) |
 | MIT license choice | APPROVED 2026-11-14 — standard MIT file staged; publishing is not complete |
 | Public repository and history review | PUBLIC verified; PARTIAL targeted history scan (11 main commits, 22 historical file versions, 15 release-candidate blobs), no common credential signatures detected. Not a comprehensive secrets audit |
 | Trademark / existing project name overlap | MITIGATED — owner approved a distinct Action display name: GitHub Pages Build Identity Check; another project uses DeployProof. No legal clearance implied |
@@ -58,7 +58,7 @@ References:
 - GitHub release id: 445256970; tag `v0.1.0` resolves exactly to `1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f`
 - CI-gated release run completed SUCCESS: https://github.com/eluyz/deployproof/actions/runs/43591619368
 - Last main CI on release commit completed SUCCESS: https://github.com/eluyz/deployproof/actions/runs/43591619325
-- Release includes explicit independent cross-repository installation: **NOT TESTED**
+- Original immutable v0.1.0 release notes truthfully stated independent installation **NOT TESTED at publication time**; owner-controlled cross-repo smoke subsequently **PASSED 2026-11-14** ([run 43600664871](https://github.com/eluyz/deployproof-consumer-test/actions/runs/43600664871), private).
 - Follow-up v0.1.0 SHA-pinned same-repo public Pages E2E: **PASS** — [run 43591796418](https://github.com/eluyz/deployproof/actions/runs/43591796418). Four expected result lines: `IDENTITY_PASS` for current source and pinned public v0.1.0 Action, `VERSION_MISMATCH` for intentionally wrong build ID, `MISSING_MANIFEST` for deliberately absent file; exact verdict assertions passed.
 - GitHub Marketplace listing NOT submitted. No external users or adoption confirmed.
 
@@ -70,8 +70,18 @@ References:
 - [Release publication workflow](https://github.com/eluyz/deployproof/actions/runs/43591619368) completed SUCCESS and proved public anonymous source access, 23 tests, correct generated manifest and metadata.
 - GitHub [v0.1.0 release](https://github.com/eluyz/deployproof/releases/tag/v0.1.0) exists, is public, not a draft, and is explicitly flagged as **prerelease**; lightweight tag SHA equals the vetted release commit.
 - Source-control follow-up [CI](https://github.com/eluyz/deployproof/actions/runs/43591796369) is green; [GitHub Pages E2E](https://github.com/eluyz/deployproof/actions/runs/43591796418) is green using a pinned `v0.1.0` Action commit SHA.
-- **Independent consumer repository Action invocation = NOT TESTED**. Do not conflate same-repository remote Action invocation or anonymous source access with cross-repository installation.
+- **Independent owner-controlled consumer repository Action invocation = PASS** on 2026-11-14; exact runner log confirms external SHA-pinned Action download and outcomes `IDENTITY_PASS`, `VERSION_MISMATCH`, `MISSING_MANIFEST`. Not an external user's adoption or trusted full deployment provenance. The consumer run is private.
 - **User adoption = 0 verified; demand unknown.** GitHub Marketplace was not listed.
 - `IDENTITY_PASS` checks only the deployment identity manifest; no guarantee about individual HTML/JS/CSS/data asset integrity, hashes or cryptographic proof.
 
 These guardrails are intentional for a learning-first public technical preview. This is not a production security certification or unrestricted GO for a complete deployment-integrity product.
+
+## DP-M2-01 cross-repository consumer smoke — VERIFIED, 2026-11-14
+
+- Separate repository: `eluyz/deployproof-consumer-test`, **PRIVATE**, owner-controlled, not an unrelated existing project.
+- Workflow source path: `.github/workflows/deployproof-consumer-smoke.yml`, commit `f9c710741f53a4c2f3f0f251178125c36a10c268`.
+- Real GitHub Actions run: [43600664871](https://github.com/eluyz/deployproof-consumer-test/actions/runs/43600664871), completed **SUCCESS**, job `consumer-smoke` ID `132464490360`.
+- Logged download: `eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f` — matching the public v0.1.0 release SHA.
+- Logged verdicts: `IDENTITY_PASS`; intentional `VERSION_MISMATCH` on `build_id` (exit 1); intentional `MISSING_MANIFEST` on HTTP 404 (exit 1). Assertion steps all succeeded.
+- **Evidence privacy:** this run is in a private test repository and will not be visible to unauthenticated external readers. Verified through the authenticated GitHub connector.
+- **Scope:** validates cross-repository Action download/invocation and exact error handling against a synthetic public fixture. It does *not* verify a consumer's own Pages deployment or secure build provenance. No external user adoption is confirmed. Release tag `v0.1.0` remains unchanged.
