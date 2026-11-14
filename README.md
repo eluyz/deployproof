@@ -2,7 +2,7 @@
 
 DeployProof is a small Python-standard-library composite GitHub Action that checks whether a **public GitHub Pages deployment manifest** matches the identity produced by the build that was actually uploaded.
 
-> **Public technical preview:** This project is open source under MIT. Check [GitHub Releases](https://github.com/eluyz/deployproof/releases) for published versions and reviewed commit SHAs. CI and controlled real GitHub Pages E2E passed. An independent cross-repository installation and real-world adoption are **NOT TESTED**. The [synthetic test site](https://eluyz.github.io/deployproof/) contains only test data.
+> **Public technical preview:** This project is open source under MIT. Check [GitHub Releases](https://github.com/eluyz/deployproof/releases) for published versions and reviewed commit SHAs. CI and controlled real GitHub Pages E2E passed. A maintainer-controlled independent-repository installation smoke test **PASSED** on 2026-11-14; actual third-party user adoption remains **unverified**. The [synthetic test site](https://eluyz.github.io/deployproof/) contains only test data.
 
 **Pinned v0.1.0:** `uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f` ([verified release](https://github.com/eluyz/deployproof/releases/tag/v0.1.0)). Use a reviewed full commit SHA rather than an unpinned branch.
 
@@ -14,8 +14,11 @@ into a newly created `deployproof-consumer-test` repo under
 `.github/workflows/deployproof-consumer-smoke.yml`. See the
 [setup instructions](examples/README.md#independent-repository-installation-smoke-dp-m2-01).
 This tests public Action packaging and error reporting only, **not**
-trusted build provenance or asset integrity. The external consumer test
-remains **NOT TESTED** until its actual GitHub run is recorded.
+trusted build provenance or asset integrity. The external consumer test **PASSED** in a separate owner-controlled private
+repository on 2026-11-14. [GitHub Actions evidence](https://github.com/eluyz/deployproof-consumer-test/actions/runs/43600664871)
+(the run is visible only to people authorized to access the private test repo).
+This validates external Action download/invocation, **not** real deployment
+provenance or independent user adoption.
 
 ## Complete workflow example
 
@@ -147,4 +150,4 @@ CI exercises a local loopback HTTP server, while the separate Pages E2E workflow
 
 ## License and status
 
-MIT — see [LICENSE](LICENSE). **Public technical preview:** see [GitHub Releases](https://github.com/eluyz/deployproof/releases) for current versions; no verified independent cross-repository installations or user adoption. Sensitive security issues should not be disclosed via public issue comments; see [SECURITY.md](SECURITY.md).
+MIT — see [LICENSE](LICENSE). **Public technical preview:** see [GitHub Releases](https://github.com/eluyz/deployproof/releases) for current versions; a verified owner-controlled separate-repository installation smoke test, but no verified independent user adoption. Sensitive security issues should not be disclosed via public issue comments; see [SECURITY.md](SECURITY.md).

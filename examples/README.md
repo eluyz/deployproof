@@ -4,7 +4,7 @@ For the published initial preview, replace the Action placeholder with:
 
 `uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f`
 
-The exact SHA corresponds to [v0.1.0](https://github.com/eluyz/deployproof/releases/tag/v0.1.0). This example is **not** proof of successful installation in an independent repository.
+The exact SHA corresponds to [v0.1.0](https://github.com/eluyz/deployproof/releases/tag/v0.1.0). An independent, owner-controlled private-repository **installation smoke test passed on 2026-11-14**, but this workflow example itself has not been run as a full build-and-deploy pipeline in that repository.
 
 [pages-deploy-and-verify.yml](pages-deploy-and-verify.yml) demonstrates how to build a static site, create a public `deployproof.json`, upload it, deploy with GitHub Pages, and compare the **published artifact's** identity against trusted build job outputs.
 
@@ -21,7 +21,7 @@ To adapt it:
 
 The Action verifies **deployment identity only**, not individual JS/CSS/data assets. The manifest's SHA and workflow IDs are **public metadata** even for a private source repository. Never include secrets.
 
-Validated against our **same-repository synthetic E2E tests**: [run 43515181535](https://github.com/eluyz/deployproof/actions/runs/43515181535). Copying into an independent repository has **not** yet been tested.
+Validated against our **same-repository synthetic E2E tests**: [run 43515181535](https://github.com/eluyz/deployproof/actions/runs/43515181535). A separate owner-controlled repository installation smoke has now passed; the complete build-and-deploy example remains independently untested.
 
 
 ## Validating this template
@@ -58,7 +58,7 @@ To run it:
 3. Verify the external GitHub Actions run has a successful positive case
    and two deliberately failing Action steps whose verdict assertions pass.
    Save the exact run URL, source repository, commit SHA and status.
-4. **Do not call DP-M2-01 DONE until an actual consumer-repo run is successful.**
+4. **DP-M2-01 DONE on 2026-11-14.** The real consumer-repository [run 43600664871](https://github.com/eluyz/deployproof-consumer-test/actions/runs/43600664871) passed (private run, visible to authorized collaborators). Its logs show external Action download at the reviewed v0.1.0 SHA, `IDENTITY_PASS`, expected `VERSION_MISMATCH` and `MISSING_MANIFEST` failures, with assertion steps succeeding.
 
 The workflow reads expected values directly from our **public synthetic**
 `deployproof.json` to exercise **installation and invocation only**. Those
@@ -76,3 +76,18 @@ check if a concurrent deployment causes a mismatch.
 The workflow's YAML and fixture-loading step are tested **offline** in
 DeployProof CI (with a local HTTP fixture). That is not equivalent to running
 the Action in a separate GitHub repository.
+
+
+### Maintainer smoke-test evidence (2026-11-14)
+
+Owner-created **private** repository `eluyz/deployproof-consumer-test` ran the
+standalone workflow under `.github/workflows/deployproof-consumer-smoke.yml`.
+The independent runner downloaded `eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f`.
+The job completed **SUCCESS** with exact verdicts `IDENTITY_PASS`,
+`VERSION_MISMATCH`, and `MISSING_MANIFEST`. The two intentionally
+failing Action steps exited nonzero and were verified by assertions.
+[Workflow run](https://github.com/eluyz/deployproof-consumer-test/actions/runs/43600664871)
+(private; not publicly viewable). The fixture identity is deliberately read
+from public test data and must **never** be used as proof of trusted
+production build provenance. An owner-run smoke test does **not** establish
+outside adoption.
