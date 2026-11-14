@@ -1,0 +1,59 @@
+name: "Bug report"
+description: "Report a reproducible problem with the GitHub Pages identity checker."
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        DeployProof v0.1.0 checks public deployment identity only, not the integrity of JS/CSS or other assets.
+        This issue is public. Never include secrets, tokens, private URLs, or private workflow logs.
+        For security issues, read SECURITY.md rather than posting exploit details here.
+  - type: dropdown
+    id: verdict
+    attributes:
+      label: "Observed verdict or symptom"
+      description: "Choose what the Action returned, if it ran."
+      options:
+        - IDENTITY_PASS
+        - VERSION_MISMATCH
+        - MISSING_MANIFEST
+        - INVALID_MANIFEST
+        - INVALID_CONFIG
+        - NETWORK_ERROR
+        - HTTP_ERROR
+        - Action did not start
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Steps to reproduce"
+      description: "Share the smallest reproducible steps and your expected/actual results. Redact sensitive values."
+      placeholder: |
+        1. Used the pinned v0.1.0 Action with a GitHub Pages project site
+        2. Generated deployproof.json before upload from build outputs
+        3. Received ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected behavior"
+      description: "What did you expect to happen?"
+    validations:
+      required: true
+  - type: textarea
+    id: safe_logs
+    attributes:
+      label: "Optional public logs or example"
+      description: "Only paste sanitized excerpts or a public workflow URL. Do not include tokens, private URLs or private logs."
+    validations:
+      required: false
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: "Public issue safety"
+      options:
+        - label: "I removed secrets, credentials, and private information from this issue."
+          required: true

@@ -6,6 +6,21 @@ DeployProof is a small Python-standard-library composite GitHub Action that chec
 
 **Pinned v0.1.0:** `uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f` ([verified release](https://github.com/eluyz/deployproof/releases/tag/v0.1.0)). Use a reviewed full commit SHA rather than an unpinned branch.
 
+## Start here — verify a real GitHub Pages deployment
+
+**New to the Action?** Follow the short
+[Getting Started guide](docs/GETTING_STARTED.md): configure GitHub Pages,
+generate `deployproof.json` **from trusted build job outputs**, deploy it
+with your site, and check for `IDENTITY_PASS`. The guide covers the
+most common URL, artifact and rerun mistakes.
+
+**Need help or have a use case?** See [Contributing](CONTRIBUTING.md),
+[report a bug](https://github.com/eluyz/deployproof/issues/new?template=bug_report.yml),
+or [tell us what you tried](https://github.com/eluyz/deployproof/issues/new?template=use_case.yml).
+Issues are public: remove secrets and private URLs. The Action collects no
+telemetry. A reported use case is not automatically counted as a production
+installation.
+
 ## Try installing from a separate test repository
 
 To verify installation from a **different repository**, copy the

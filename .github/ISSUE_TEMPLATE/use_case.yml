@@ -1,0 +1,50 @@
+name: "Use case or onboarding feedback"
+description: "Tell us what you actually tried and what would help."
+title: "[Feedback]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing. Reports help us improve setup and test whether this narrow tool solves a real problem.
+        This issue is public: do not include secrets, private repositories, private workflow logs, or personal data.
+        We will not assume your report proves production adoption unless you explicitly describe real use.
+  - type: dropdown
+    id: stage
+    attributes:
+      label: "How far did you get?"
+      options:
+        - Read the documentation only
+        - Tried the synthetic installation smoke test
+        - Installed in a test repository
+        - Checked my own real GitHub Pages deployment
+        - Could not install the Action
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: "What problem were you trying to solve?"
+      description: "Briefly describe your GitHub Pages workflow or deployment problem."
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: "What happened?"
+      description: "What worked, what failed, or what stopped you? Only share links that you want public."
+    validations:
+      required: true
+  - type: textarea
+    id: improve
+    attributes:
+      label: "What would make setup easier?"
+      description: "Optional documentation or feature suggestion, within this Action's identity-only scope."
+    validations:
+      required: false
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: "Public issue safety"
+      options:
+        - label: "I removed secrets, credentials, and private information from this issue."
+          required: true
