@@ -36,12 +36,11 @@ def main() -> None:
                         f"duplicate or missing issue field id: {filename}")
                 ids.add(ident)
                 require(item["attributes"].get("label"), f"missing field label: {ident}")
-            if ident if kind != "markdown" else False:
-                if ident == "safety" and kind == "checkboxes":
-                    options = item["attributes"].get("options", [])
-                    require(options and options[0].get("required") is True,
-                            "public-issue safety checkbox must be required")
-                    safety = True
+            if kind == "checkboxes" and item.get("id") == "safety":
+                options = item["attributes"].get("options", [])
+                require(options and options[0].get("required") is True,
+                        "public-issue safety checkbox must be required")
+                safety = True
         require(safety, f"missing safety acknowledgement: {filename}")
         print(f"PASS: GitHub issue form YAML fields and privacy checkbox: {filename}")
 
