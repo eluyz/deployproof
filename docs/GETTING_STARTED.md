@@ -18,8 +18,9 @@ artifacts or a browser smoke test. This is a `v0.1.0` technical preview.
    Replace the illustrative HTML-building step with your real build, which
    must write to `dist/`. If your build output directory differs, update both
    the manifest path and upload path consistently.
-3. Replace `YOUR_USERNAME` and `YOUR_REPOSITORY` with the actual Pages
-   address. Replace the `uses` placeholder with the reviewed release SHA:
+3. Replace `YOUR_USERNAME` and `YOUR_REPOSITORY` with your site's actual
+   Pages address. The workflow example **already pins** the Action to the
+   reviewed release SHA:
 
    ```yaml
    uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f

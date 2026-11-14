@@ -1,6 +1,7 @@
 # Full workflow example
 
-For the published initial preview, replace the Action placeholder with:
+For the public v0.1.0 preview, the example **already pins** the Action to its
+published full SHA:
 
 `uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f`
 
@@ -8,14 +9,21 @@ The exact SHA corresponds to [v0.1.0](https://github.com/eluyz/deployproof/relea
 
 [pages-deploy-and-verify.yml](pages-deploy-and-verify.yml) demonstrates how to build a static site, create a public `deployproof.json`, upload it, deploy with GitHub Pages, and compare the **published artifact's** identity against trusted build job outputs.
 
-**This is a template, not a fully configured production workflow and not a tested third-party installation.** The placeholder `uses: eluyz/deployproof@REPLACE_WITH_REVIEWED_RELEASE_COMMIT_SHA` must be replaced with the reviewed full SHA of a published [GitHub Release](https://github.com/eluyz/deployproof/releases).
+**This is a template, not a fully configured production workflow, and not a
+tested third-party *site deployment*.** The Action reference is pinned to the
+reviewed [v0.1.0 commit](https://github.com/eluyz/deployproof/releases/tag/v0.1.0).
+You still must adapt the demonstration build and site URL to your repository.
+A separate owner-controlled installation smoke passed, but the complete
+build-and-deploy workflow has not been tested in a different user's site.
 
 To adapt it:
 
 1. Enable **Settings → Pages → Build and deployment → Source: GitHub Actions** in the website repository.
 2. Copy the example into that repository as `.github/workflows/pages.yml`.
 3. Replace the demonstration HTML build step with the real build that writes to `dist/`; keep identity generation **after the build and before artifact upload**.
-4. Replace `YOUR_USERNAME`, `YOUR_REPOSITORY`, and the Action commit SHA with your real values.
+4. Replace `YOUR_USERNAME` and `YOUR_REPOSITORY` with your real values. The
+   Action is already pinned to the reviewed v0.1.0 commit; update that SHA
+   only after reviewing a future release.
 5. Keep all expected IDs sourced from `needs.build.outputs`, not the verification job's `github.run_attempt`. Failed-job reruns may otherwise report a false mismatch.
 6. Confirm the public manifest is reachable at `https://YOUR_USERNAME.github.io/YOUR_REPOSITORY/deployproof.json` and inspect the actual run logs.
 

@@ -42,10 +42,10 @@ shows a build job, public identity manifest, Pages deployment, and a verifier
 that compares against **trusted build job outputs**. Its syntax and identity
 generation are validated by CI, including the build rerun-attempt case.
 
-The example contains an intentionally unresolved Action SHA and example site
-URL: choose a reviewed full commit SHA from the GitHub release before use.
-See the [usage instructions](examples/README.md); do **not** copy the sample
-without replacing placeholders.
+The complete example now pins the Action to the **published reviewed v0.1.0
+commit SHA**. Its website URL is still a **placeholder**: edit the demonstration
+build and `YOUR_USERNAME`/`YOUR_REPOSITORY` before copying it into another
+repository. See the [usage instructions](examples/README.md).
 
 ## What it verifies
 

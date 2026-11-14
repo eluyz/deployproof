@@ -85,9 +85,8 @@ jobs:
 
       - name: Verify live deployment identity
         id: proof
-        # Only available after DeployProof's repository becomes public.
-        # Replace with the reviewed SHA of the released Action.
-        uses: eluyz/deployproof@REPLACE_WITH_REVIEWED_RELEASE_COMMIT_SHA
+        # Pinned published public v0.1.0 technical-preview Action (review before use).
+        uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f
         with:
           site-url: https://YOUR_USERNAME.github.io/YOUR_REPOSITORY/
           expected-sha: ${{ needs.build.outputs.git_sha }}
