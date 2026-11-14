@@ -37,3 +37,42 @@ Development validation commands:
 
 These checks establish YAML parsing and generated identity behavior, **not**
 a successful installation from a different public repository.
+
+## Independent repository installation smoke (DP-M2-01)
+
+[consumer-install-smoke.yml](consumer-install-smoke.yml) is a complete
+**ready-to-copy workflow for a separate, empty test repository**. It checks
+that the public, SHA-pinned `v0.1.0` Action can be downloaded and invoked
+outside its source repository, then deliberately produces
+`VERSION_MISMATCH` and `MISSING_MANIFEST` to verify exact errors.
+
+To run it:
+
+1. Create a separate private test repository named `deployproof-consumer-test`
+   under your own GitHub account, with **no README, license or .gitignore**.
+   Do not add this workflow to an unrelated existing project.
+2. Copy the file into `.github/workflows/deployproof-consumer-smoke.yml`
+   on the test repository's `main` branch. The initial push triggers the run;
+   you can also use **Actions → DeployProof independent-repository installation
+   smoke → Run workflow**.
+3. Verify the external GitHub Actions run has a successful positive case
+   and two deliberately failing Action steps whose verdict assertions pass.
+   Save the exact run URL, source repository, commit SHA and status.
+4. **Do not call DP-M2-01 DONE until an actual consumer-repo run is successful.**
+
+The workflow reads expected values directly from our **public synthetic**
+`deployproof.json` to exercise **installation and invocation only**. Those
+values are **not trusted build provenance** and using them would be wrong
+for verifying a real deployment. For production usage, generate the expected
+values from the *trusted build job* as shown in
+[pages-deploy-and-verify.yml](pages-deploy-and-verify.yml).
+
+It requires no GitHub Pages configuration, no credentials, no write token,
+no repository secrets and no checkout in the consumer repository. The Action
+reference is the fully pinned, reviewed `v0.1.0` release SHA. The public
+fixture may change after another Pages test deployment; rerun the smoke
+check if a concurrent deployment causes a mismatch.
+
+The workflow's YAML and fixture-loading step are tested **offline** in
+DeployProof CI (with a local HTTP fixture). That is not equivalent to running
+the Action in a separate GitHub repository.

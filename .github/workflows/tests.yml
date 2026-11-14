@@ -17,3 +17,5 @@ jobs:
         run: python3 -m pip install --disable-pip-version-check PyYAML==6.0.3
       - name: Validate release workflow template
         run: python3 scripts/validate_release_example.py
+      - name: Validate external consumer smoke template (offline)
+        run: python3 scripts/validate_consumer_example.py
