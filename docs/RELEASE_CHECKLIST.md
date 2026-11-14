@@ -1,6 +1,8 @@
 # v0.1.0 release gate (internal; NOT a release)
 
-Status: **BLOCKED ON EXPLICIT OWNER APPROVAL AND PUBLIC INSTALLATION TEST**.
+Status: **APPROVED IN PRINCIPLE — PUBLICATION STILL BLOCKED ON VISIBILITY AND CROSS-REPO VERIFICATION**.
+
+Owner approved the planned public repository, MIT license and display name **GitHub Pages Build Identity Check** on 2026-11-14. This authorizes release preparation and publication under those conditions; it does NOT mean the repository is already public or that the cross-repository installation test has passed.
 
 Security-review scope: checked all 11 reachable main commits' changed-file lists,
 22 historical changed-file contents and all 15 current candidate blobs for
@@ -20,9 +22,9 @@ repository public.
 | Rerun provenance | PASS — build outputs preserved across verifier job reruns; run 43506480136 |
 | SHA-pinned Action reference in same private repo | PASS — run 43515181535 |
 | External repo invokes public Action | NOT RUN — repository remains private |
-| MIT license choice | PENDING — MIT staged, owner confirmation required |
-| Public repository and history review | PARTIAL — 11 main-branch commits and 22 historical changed-file versions checked; 15 current candidate files checked for several common token/key signatures; no patterns detected. Not a full secrets audit; owner final review pending |
-| Trademark / existing project name overlap | WARNING — GitHub Marketplace already displays a different "DeployProof" Action; another project uses deployproof. Check uniqueness before publishing |
+| MIT license choice | APPROVED 2026-11-14 — standard MIT file staged; publishing is not complete |
+| Public repository and history review | OWNER APPROVED; visibility STILL PRIVATE; targeted scan PARTIAL — 11 main-branch commits and 22 historical changed-file versions checked; 15 current candidate files checked for several common token/key signatures; no patterns detected. Not a full secrets audit; owner final review pending |
+| Trademark / existing project name overlap | MITIGATED — owner approved a distinct Action display name: GitHub Pages Build Identity Check; another project uses DeployProof. No legal clearance implied |
 | Third-party security penetration test | NOT RUN — not promised for preview; explicit known limitations |
 | GitHub version tag v0.1.0 | NOT CREATED |
 | Public GitHub Release | NOT CREATED |

@@ -1,5 +1,7 @@
 # DeployProof v0.1.0 — release draft (NOT PUBLISHED)
 
+**Action display name:** GitHub Pages Build Identity Check (owner-approved; repository slug remains `eluyz/deployproof`).
+
 **Release type:** Initial technical preview (open-source learning project).
 
 DeployProof checks whether a live GitHub Pages website serves the deployment identity created by a specific build. It compares a small public JSON manifest with four trusted values originating in the build job: `git_sha`, `workflow_run_id`, `run_attempt` and `build_id`.
