@@ -1,0 +1,124 @@
+# Copy this file into .github/workflows/deployproof-consumer-smoke.yml
+# in an EMPTY, SEPARATE test repository; NOT in the DeployProof source repo.
+# Uses the PUBLIC v0.1.0 release Action at a reviewed immutable commit SHA.
+# Reads identity from the public test fixture ONLY to test installation/transport:
+# this smoke check is NOT trusted build-provenance verification.
+name: DeployProof independent-repository installation smoke
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  consumer-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read synthetic public Pages fixture (smoke test only)
+        id: fixture
+        shell: bash
+        env:
+          FIXTURE_URL: https://eluyz.github.io/deployproof/deployproof.json
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import urllib.request
+
+          with urllib.request.urlopen(os.environ["FIXTURE_URL"], timeout=10) as response:
+              payload = response.read(65537)
+          if len(payload) > 65536:
+              raise ValueError("test fixture exceeds size limit")
+          obj = json.loads(payload)
+          if not isinstance(obj, dict):
+              raise ValueError("test fixture must be a JSON object")
+          sha = obj.get("git_sha")
+          run_id = obj.get("workflow_run_id")
+          attempt = obj.get("run_attempt")
+          build_id = obj.get("build_id")
+          if not isinstance(sha, str) or re.fullmatch(r"[0-9a-f]{40}", sha) is None:
+              raise ValueError("invalid test fixture git_sha")
+          if not isinstance(run_id, str) or re.fullmatch(r"[1-9][0-9]{0,18}", run_id) is None:
+              raise ValueError("invalid test fixture workflow_run_id")
+          if not isinstance(attempt, str) or re.fullmatch(r"[1-9][0-9]{0,8}", attempt) is None:
+              raise ValueError("invalid test fixture run_attempt")
+          if build_id != f"{run_id}-{attempt}-{sha}":
+              raise ValueError("unexpected test fixture build_id")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              for key in ("git_sha", "workflow_run_id", "run_attempt", "build_id"):
+                  output.write(f"{key}={obj[key]}\n")
+          print("Synthetic public fixture read and checked (NOT trusted provenance)")
+          PY
+
+      - name: Positive control - install and invoke PUBLIC SHA-pinned Action
+        id: positive
+        uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f
+        with:
+          site-url: https://eluyz.github.io/deployproof/
+          expected-sha: ${{ steps.fixture.outputs.git_sha }}
+          expected-run-id: ${{ steps.fixture.outputs.workflow_run_id }}
+          expected-run-attempt: ${{ steps.fixture.outputs.run_attempt }}
+          expected-build-id: ${{ steps.fixture.outputs.build_id }}
+          attempts: '3'
+          delay-seconds: '2'
+          timeout-seconds: '10'
+
+      - name: Assert successful public Action invocation
+        env:
+          VERDICT: ${{ steps.positive.outputs.verdict }}
+        run: |
+          if [ "$VERDICT" != "IDENTITY_PASS" ]; then
+            echo "Expected IDENTITY_PASS, got $VERDICT" >&2
+            exit 1
+          fi
+
+      - name: Negative control - intentionally wrong build ID
+        id: wrong_build
+        continue-on-error: true
+        uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f
+        with:
+          site-url: https://eluyz.github.io/deployproof/
+          expected-sha: ${{ steps.fixture.outputs.git_sha }}
+          expected-run-id: ${{ steps.fixture.outputs.workflow_run_id }}
+          expected-run-attempt: ${{ steps.fixture.outputs.run_attempt }}
+          expected-build-id: deliberately-wrong-build-id
+          attempts: '1'
+
+      - name: Assert exact VERSION_MISMATCH failure
+        if: ${{ !cancelled() }}
+        env:
+          OBSERVED_OUTCOME: ${{ steps.wrong_build.outcome }}
+          VERDICT: ${{ steps.wrong_build.outputs.verdict }}
+        run: |
+          if [ "$OBSERVED_OUTCOME" != "failure" ] || [ "$VERDICT" != "VERSION_MISMATCH" ]; then
+            echo "Expected VERSION_MISMATCH failure, got $OBSERVED_OUTCOME / $VERDICT" >&2
+            exit 1
+          fi
+
+      - name: Negative control - missing manifest
+        id: missing_manifest
+        continue-on-error: true
+        uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f
+        with:
+          site-url: https://eluyz.github.io/deployproof/
+          manifest-path: missing-consumer-smoke-manifest.json
+          expected-sha: ${{ steps.fixture.outputs.git_sha }}
+          expected-run-id: ${{ steps.fixture.outputs.workflow_run_id }}
+          expected-run-attempt: ${{ steps.fixture.outputs.run_attempt }}
+          expected-build-id: ${{ steps.fixture.outputs.build_id }}
+          attempts: '1'
+
+      - name: Assert exact MISSING_MANIFEST failure
+        if: ${{ !cancelled() }}
+        env:
+          OBSERVED_OUTCOME: ${{ steps.missing_manifest.outcome }}
+          VERDICT: ${{ steps.missing_manifest.outputs.verdict }}
+        run: |
+          if [ "$OBSERVED_OUTCOME" != "failure" ] || [ "$VERDICT" != "MISSING_MANIFEST" ]; then
+            echo "Expected MISSING_MANIFEST failure, got $OBSERVED_OUTCOME / $VERDICT" >&2
+            exit 1
+          fi

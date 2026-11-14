@@ -6,6 +6,17 @@ DeployProof is a small Python-standard-library composite GitHub Action that chec
 
 **Pinned v0.1.0:** `uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f` ([verified release](https://github.com/eluyz/deployproof/releases/tag/v0.1.0)). Use a reviewed full commit SHA rather than an unpinned branch.
 
+## Try installing from a separate test repository
+
+To verify installation from a **different repository**, copy the
+[standalone consumer smoke workflow](examples/consumer-install-smoke.yml)
+into a newly created `deployproof-consumer-test` repo under
+`.github/workflows/deployproof-consumer-smoke.yml`. See the
+[setup instructions](examples/README.md#independent-repository-installation-smoke-dp-m2-01).
+This tests public Action packaging and error reporting only, **not**
+trusted build provenance or asset integrity. The external consumer test
+remains **NOT TESTED** until its actual GitHub run is recorded.
+
 ## Complete workflow example
 
 The end-to-end [sample GitHub Pages workflow](examples/pages-deploy-and-verify.yml)
