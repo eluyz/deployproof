@@ -4,6 +4,18 @@ DeployProof is a small Python-standard-library composite GitHub Action that chec
 
 > **Technical preview, not released:** The private repository has passed GitHub Actions CI and controlled real GitHub Pages E2E tests. The public test page at https://eluyz.github.io/deployproof/ contains only generated test content. This repository is not yet available to external users as an installable public Action, and demand/adoption are unverified.
 
+## Complete workflow example
+
+The end-to-end [sample GitHub Pages workflow](examples/pages-deploy-and-verify.yml)
+shows a build job, public identity manifest, Pages deployment, and a verifier
+that compares against **trusted build job outputs**. Its syntax and identity
+generation are validated by CI, including the build rerun-attempt case.
+
+The example contains an intentionally unresolved Action SHA and example site
+URL because this repository is still private and the Action is not released.
+See the [usage instructions](examples/README.md); do **not** copy the sample
+without replacing placeholders.
+
 ## What it verifies
 
 The static site must serve `deployproof.json` containing **four string fields**:

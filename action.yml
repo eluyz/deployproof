@@ -1,4 +1,4 @@
-name: DeployProof (preview)
+name: GitHub Pages Build Identity Check
 description: Check whether a public GitHub Pages manifest matches the expected build identity
 branding:
   icon: check-circle
