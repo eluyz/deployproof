@@ -1,8 +1,8 @@
 # v0.1.0 release gate (internal; NOT a release)
 
-Status: **APPROVED IN PRINCIPLE — PUBLICATION STILL BLOCKED ON VISIBILITY AND CROSS-REPO VERIFICATION**.
+Status at release preparation: **PUBLIC REPO VERIFIED; CI-GATED v0.1.0 TECHNICAL PREVIEW**. Cross-repository invocation remains **NOT TESTED** and must not be claimed.
 
-Owner approved the planned public repository, MIT license and display name **GitHub Pages Build Identity Check** on 2026-11-14. This authorizes release preparation and publication under those conditions; it does NOT mean the repository is already public or that the cross-repository installation test has passed.
+Owner approved public visibility, MIT and display name **GitHub Pages Build Identity Check** on 2026-11-14. Repository visibility was independently verified as **PUBLIC** on 2026-11-14. This does not prove cross-repo installation.
 
 Security-review scope: checked all 11 reachable main commits' changed-file lists,
 22 historical changed-file contents and all 15 current candidate blobs for
@@ -21,16 +21,16 @@ repository public.
 | Release example YAML and manifest generation | PASS — PR CI 43518247242 on da289d68: PyYAML parse, synthetic build attempts 1 and 2, trusted job outputs |
 | Rerun provenance | PASS — build outputs preserved across verifier job reruns; run 43506480136 |
 | SHA-pinned Action reference in same private repo | PASS — run 43515181535 |
-| External repo invokes public Action | NOT RUN — repository remains private |
+| External repo invokes public Action | **NOT TESTED** — no separately authorized consumer repo available; disclose explicitly in initial prerelease |
 | MIT license choice | APPROVED 2026-11-14 — standard MIT file staged; publishing is not complete |
-| Public repository and history review | OWNER APPROVED; visibility STILL PRIVATE; targeted scan PARTIAL — 11 main-branch commits and 22 historical changed-file versions checked; 15 current candidate files checked for several common token/key signatures; no patterns detected. Not a full secrets audit; owner final review pending |
+| Public repository and history review | PUBLIC verified; PARTIAL targeted history scan (11 main commits, 22 historical file versions, 15 release-candidate blobs), no common credential signatures detected. Not a comprehensive secrets audit |
 | Trademark / existing project name overlap | MITIGATED — owner approved a distinct Action display name: GitHub Pages Build Identity Check; another project uses DeployProof. No legal clearance implied |
 | Third-party security penetration test | NOT RUN — not promised for preview; explicit known limitations |
-| GitHub version tag v0.1.0 | NOT CREATED |
-| Public GitHub Release | NOT CREATED |
+| GitHub version tag v0.1.0 | Pending guarded release workflow; verify tag and SHA after job completes |
+| Public GitHub Release | Pending guarded GitHub Actions prerelease; verify actual URL and status after job completes |
 | GitHub Marketplace listing | NOT CREATED — optional after separate owner acceptance |
 
-## Before changing visibility
+## Publication controls (historical approval confirmed)
 
 1. Obtain explicit approval of MIT text and the public repository/name choice. Recheck the Action metadata `name` for Marketplace uniqueness; do not assume `DeployProof` is available.
 2. Audit code, config, history and generated artifacts for secrets, private data, proprietary code and unintended personal identifiers.

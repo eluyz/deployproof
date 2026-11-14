@@ -98,7 +98,8 @@ def main() -> None:
                 require(re.fullmatch(r"actions/[^@]+@[0-9a-f]{40}", source),
                         f"official action not pinned: {source}")
     for metadata_path in ("action.yml", ".github/workflows/tests.yml",
-                          ".github/workflows/pages-e2e.yml"):
+                          ".github/workflows/pages-e2e.yml",
+                          ".github/workflows/release-v0.1.0.yml"):
         parsed = yaml.load((ROOT / metadata_path).read_text(encoding="utf-8"),
                            Loader=yaml.BaseLoader)
         require(isinstance(parsed, dict), f"invalid YAML mapping: {metadata_path}")

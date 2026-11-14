@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] — planned v0.1.0 (not published)
+## [0.1.0] — Initial public technical preview (2026-11-14)
 
 ### Added
 
@@ -20,4 +20,4 @@
 
 ### Release status
 
-The repository remains private and no v0.1.0 tag or GitHub release has been created. This changelog documents a candidate, not a released product.
+See [GitHub Releases](https://github.com/eluyz/deployproof/releases) for the actual versioned release and exact tag SHA. This is an identity-only technical preview; independent third-party installation is not yet verified.
