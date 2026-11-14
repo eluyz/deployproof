@@ -1,6 +1,6 @@
 # v0.1.0 release gate (internal; NOT a release)
 
-Status at release preparation: **PUBLIC REPO VERIFIED; CI-GATED v0.1.0 TECHNICAL PREVIEW**. Cross-repository invocation remains **NOT TESTED** and must not be claimed.
+Status: **v0.1.0 PUBLIC PRERELEASE VERIFIED — RELEASE GATE PASSED FOR SCOPED TECHNICAL PREVIEW**. Cross-repository consumer installation remains **NOT TESTED**, and asset-integrity verification is outside scope.
 
 Owner approved public visibility, MIT and display name **GitHub Pages Build Identity Check** on 2026-11-14. Repository visibility was independently verified as **PUBLIC** on 2026-11-14. This does not prove cross-repo installation.
 
@@ -26,8 +26,8 @@ repository public.
 | Public repository and history review | PUBLIC verified; PARTIAL targeted history scan (11 main commits, 22 historical file versions, 15 release-candidate blobs), no common credential signatures detected. Not a comprehensive secrets audit |
 | Trademark / existing project name overlap | MITIGATED — owner approved a distinct Action display name: GitHub Pages Build Identity Check; another project uses DeployProof. No legal clearance implied |
 | Third-party security penetration test | NOT RUN — not promised for preview; explicit known limitations |
-| GitHub version tag v0.1.0 | Pending guarded release workflow; verify tag and SHA after job completes |
-| Public GitHub Release | Pending guarded GitHub Actions prerelease; verify actual URL and status after job completes |
+| GitHub version tag v0.1.0 | VERIFIED — tag resolves to `1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f` (release commit) |
+| Public GitHub Release | VERIFIED — [v0.1.0 prerelease](https://github.com/eluyz/deployproof/releases/tag/v0.1.0), GitHub release ID 445256970, published 2026-11-14 |
 | GitHub Marketplace listing | NOT CREATED — optional after separate owner acceptance |
 
 ## Publication controls (historical approval confirmed)
@@ -59,5 +59,19 @@ References:
 - CI-gated release run completed SUCCESS: https://github.com/eluyz/deployproof/actions/runs/43591619368
 - Last main CI on release commit completed SUCCESS: https://github.com/eluyz/deployproof/actions/runs/43591619325
 - Release includes explicit independent cross-repository installation: **NOT TESTED**
-- Follow-up v0.1.0 SHA-pinned same-repo public Pages E2E in progress; do not call PASS until its run is verified
+- Follow-up v0.1.0 SHA-pinned same-repo public Pages E2E: **PASS** — [run 43591796418](https://github.com/eluyz/deployproof/actions/runs/43591796418). Four expected result lines: `IDENTITY_PASS` for current source and pinned public v0.1.0 Action, `VERSION_MISMATCH` for intentionally wrong build ID, `MISSING_MANIFEST` for deliberately absent file; exact verdict assertions passed.
 - GitHub Marketplace listing NOT submitted. No external users or adoption confirmed.
+
+## Final scoped release decision — 2026-11-14
+
+**GO_RELEASE / initial public prerelease only.** Preconditions verified:
+
+- Repository is publicly visible; owner approved MIT and the distinct Action name.
+- [Release publication workflow](https://github.com/eluyz/deployproof/actions/runs/43591619368) completed SUCCESS and proved public anonymous source access, 23 tests, correct generated manifest and metadata.
+- GitHub [v0.1.0 release](https://github.com/eluyz/deployproof/releases/tag/v0.1.0) exists, is public, not a draft, and is explicitly flagged as **prerelease**; lightweight tag SHA equals the vetted release commit.
+- Source-control follow-up [CI](https://github.com/eluyz/deployproof/actions/runs/43591796369) is green; [GitHub Pages E2E](https://github.com/eluyz/deployproof/actions/runs/43591796418) is green using a pinned `v0.1.0` Action commit SHA.
+- **Independent consumer repository Action invocation = NOT TESTED**. Do not conflate same-repository remote Action invocation or anonymous source access with cross-repository installation.
+- **User adoption = 0 verified; demand unknown.** GitHub Marketplace was not listed.
+- `IDENTITY_PASS` checks only the deployment identity manifest; no guarantee about individual HTML/JS/CSS/data asset integrity, hashes or cryptographic proof.
+
+These guardrails are intentional for a learning-first public technical preview. This is not a production security certification or unrestricted GO for a complete deployment-integrity product.
