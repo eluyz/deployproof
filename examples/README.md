@@ -1,5 +1,11 @@
 # Full workflow example
 
+For the published initial preview, replace the Action placeholder with:
+
+`uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f`
+
+The exact SHA corresponds to [v0.1.0](https://github.com/eluyz/deployproof/releases/tag/v0.1.0). This example is **not** proof of successful installation in an independent repository.
+
 [pages-deploy-and-verify.yml](pages-deploy-and-verify.yml) demonstrates how to build a static site, create a public `deployproof.json`, upload it, deploy with GitHub Pages, and compare the **published artifact's** identity against trusted build job outputs.
 
 **This is a template, not a fully configured production workflow and not a tested third-party installation.** The placeholder `uses: eluyz/deployproof@REPLACE_WITH_REVIEWED_RELEASE_COMMIT_SHA` must be replaced with the reviewed full SHA of a published [GitHub Release](https://github.com/eluyz/deployproof/releases).

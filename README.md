@@ -4,6 +4,8 @@ DeployProof is a small Python-standard-library composite GitHub Action that chec
 
 > **Public technical preview:** This project is open source under MIT. Check [GitHub Releases](https://github.com/eluyz/deployproof/releases) for published versions and reviewed commit SHAs. CI and controlled real GitHub Pages E2E passed. An independent cross-repository installation and real-world adoption are **NOT TESTED**. The [synthetic test site](https://eluyz.github.io/deployproof/) contains only test data.
 
+**Pinned v0.1.0:** `uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f` ([verified release](https://github.com/eluyz/deployproof/releases/tag/v0.1.0)). Use a reviewed full commit SHA rather than an unpinned branch.
+
 ## Complete workflow example
 
 The end-to-end [sample GitHub Pages workflow](examples/pages-deploy-and-verify.yml)
@@ -96,7 +98,7 @@ After deploying, your **deploy job** must declare `needs: build` and can check t
 ```yaml
 - name: Verify the deployed build
   id: deployproof
-  uses: eluyz/deployproof@REPLACE_WITH_REVIEWED_FULL_40_CHARACTER_COMMIT_SHA
+  uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f
   with:
     site-url: https://OWNER.github.io/REPO/
     manifest-path: deployproof.json
@@ -111,7 +113,7 @@ After deploying, your **deploy job** must declare `needs: build` and can check t
 
 After an Action step, other steps can use `steps.deployproof.outputs.verdict`. The Action returns exit status 0 only on `IDENTITY_PASS` and nonzero for every failure. Failure categories are exposed even when the Action exits nonzero, so a testing workflow can assert the exact kind rather than treating every failure as a correct negative test.
 
-**Important:** The examples above are snippets and are not complete workflow YAML by themselves. The complete working workflow is `.github/workflows/pages-e2e.yml`; adapt its build and site URL to your own repository. The public Action reference above is an intentional **placeholder**, not a valid ref. Replace it with the full reviewed commit SHA from an available GitHub release; using a mutable tag has additional supply-chain risk.
+**Important:** The examples above are snippets and are not complete workflow YAML by themselves. The complete working workflow is `.github/workflows/pages-e2e.yml`; adapt its build and site URL to your own repository. The public Action reference above is pinned to the reviewed **v0.1.0 release commit SHA**. Review this commit before integrating; using a mutable version tag has additional supply-chain risk.
 
 ## Compatibility and security boundaries
 

@@ -81,7 +81,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
 
-      - name: Check out the private action under test
+      - name: Check out the public Action source under test
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Positive control - latest published build must match
@@ -109,7 +109,7 @@ jobs:
 
       - name: Verify installation via a pinned remote Action reference
         id: remote_action
-        uses: eluyz/deployproof@40c66baa4563339ce24a131c79bbddd694fb7c34 # Previously tested commit; same private repository
+        uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f # Published v0.1.0 prerelease commit SHA
         with:
           site-url: https://eluyz.github.io/deployproof/
           expected-sha: ${{ needs.build.outputs.git_sha }}

@@ -50,3 +50,14 @@ If the third-party test is unavailable, label it as NOT TESTED in the release in
 References:
 - https://docs.github.com/en/actions/how-tos/create-and-publish-actions/publish-in-github-marketplace
 - https://docs.github.com/en/actions/how-tos/create-and-publish-actions/release-and-maintain-actions
+
+## Publication result — 2026-11-14 (verified)
+
+- PUBLIC source repository: https://github.com/eluyz/deployproof
+- Published **prerelease**, not GA: https://github.com/eluyz/deployproof/releases/tag/v0.1.0
+- GitHub release id: 445256970; tag `v0.1.0` resolves exactly to `1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f`
+- CI-gated release run completed SUCCESS: https://github.com/eluyz/deployproof/actions/runs/43591619368
+- Last main CI on release commit completed SUCCESS: https://github.com/eluyz/deployproof/actions/runs/43591619325
+- Release includes explicit independent cross-repository installation: **NOT TESTED**
+- Follow-up v0.1.0 SHA-pinned same-repo public Pages E2E in progress; do not call PASS until its run is verified
+- GitHub Marketplace listing NOT submitted. No external users or adoption confirmed.
