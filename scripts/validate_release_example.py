@@ -87,8 +87,9 @@ def main() -> None:
                      ("expected-build-id", "build_id")):
         require(verify_step["with"][arg] == "$"+"{{ needs.build.outputs."+key+" }}",
                 f"untrusted verifier input: {arg}")
-    require(verify_step["uses"] == "eluyz/deployproof@REPLACE_WITH_REVIEWED_RELEASE_COMMIT_SHA",
-            "not-yet-public Action must stay an explicit placeholder")
+    require(verify_step["uses"] ==
+            "eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f",
+            "example must use the reviewed published v0.1.0 SHA")
     require(verify_step["with"]["site-url"] == "https://YOUR_USERNAME.github.io/YOUR_REPOSITORY/",
             "site URL must remain a placeholder")
     for job in data["jobs"].values():
@@ -110,7 +111,7 @@ def main() -> None:
             require(parsed.get("outputs", {}).get("verdict") is not None,
                     "Action must expose verdict output")
     print("PASS: Action/workflow YAML syntax validated")
-    print("PASS: YAML parsed, build outputs trusted, Actions pinned, placeholders explicit")
+    print("PASS: YAML parsed, trusted outputs, v0.1.0 SHA pinned, site placeholder explicit")
 
 
 if __name__ == "__main__":
