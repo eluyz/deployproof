@@ -2,9 +2,9 @@
 
 [pages-deploy-and-verify.yml](pages-deploy-and-verify.yml) demonstrates how to build a static site, create a public `deployproof.json`, upload it, deploy with GitHub Pages, and compare the **published artifact's** identity against trusted build job outputs.
 
-**This is a template, not a fully configured production workflow and not a tested third-party installation.** DeployProof is private and has no published release yet, so `uses: eluyz/deployproof@REPLACE_WITH_REVIEWED_RELEASE_COMMIT_SHA` is intentionally unresolved.
+**This is a template, not a fully configured production workflow and not a tested third-party installation.** The placeholder `uses: eluyz/deployproof@REPLACE_WITH_REVIEWED_RELEASE_COMMIT_SHA` must be replaced with the reviewed full SHA of a published [GitHub Release](https://github.com/eluyz/deployproof/releases).
 
-To try it **after publication**:
+To adapt it:
 
 1. Enable **Settings → Pages → Build and deployment → Source: GitHub Actions** in the website repository.
 2. Copy the example into that repository as `.github/workflows/pages.yml`.
@@ -18,7 +18,7 @@ The Action verifies **deployment identity only**, not individual JS/CSS/data ass
 Validated against our **same-repository synthetic E2E tests**: [run 43515181535](https://github.com/eluyz/deployproof/actions/runs/43515181535). Copying into an independent repository has **not** yet been tested.
 
 
-## Validating this template before publication
+## Validating this template
 
 CI parses the example with PyYAML 6.0.3 and executes its identity-generation
 script with synthetic build IDs, including a rerun attempt. PyYAML is a

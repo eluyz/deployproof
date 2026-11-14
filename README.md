@@ -2,7 +2,7 @@
 
 DeployProof is a small Python-standard-library composite GitHub Action that checks whether a **public GitHub Pages deployment manifest** matches the identity produced by the build that was actually uploaded.
 
-> **Technical preview, not released:** The private repository has passed GitHub Actions CI and controlled real GitHub Pages E2E tests. The public test page at https://eluyz.github.io/deployproof/ contains only generated test content. This repository is not yet available to external users as an installable public Action, and demand/adoption are unverified.
+> **Public technical preview:** This project is open source under MIT. Check [GitHub Releases](https://github.com/eluyz/deployproof/releases) for published versions and reviewed commit SHAs. CI and controlled real GitHub Pages E2E passed. An independent cross-repository installation and real-world adoption are **NOT TESTED**. The [synthetic test site](https://eluyz.github.io/deployproof/) contains only test data.
 
 ## Complete workflow example
 
@@ -12,7 +12,7 @@ that compares against **trusted build job outputs**. Its syntax and identity
 generation are validated by CI, including the build rerun-attempt case.
 
 The example contains an intentionally unresolved Action SHA and example site
-URL because this repository is still private and the Action is not released.
+URL: choose a reviewed full commit SHA from the GitHub release before use.
 See the [usage instructions](examples/README.md); do **not** copy the sample
 without replacing placeholders.
 
@@ -41,7 +41,7 @@ Evidence: [real GitHub Pages E2E, including re-run](https://github.com/eluyz/dep
 
 **Rerun rule:** `github.run_attempt` in a *re-run verification job* may differ from the `run_attempt` that produced the deployed artifact. Therefore, pass expected identities **from the build step/job outputs**, not from the verifying job's current workflow context. A rerun of the verifier job must continue checking the artifact's actual build identity.
 
-## Integration outline (for after the first public release)
+## Integration outline for the public technical preview
 
 1. Configure GitHub Pages to deploy from **GitHub Actions**.
 2. Run your normal build (for example, generate `dist/index.html`).
@@ -111,7 +111,7 @@ After deploying, your **deploy job** must declare `needs: build` and can check t
 
 After an Action step, other steps can use `steps.deployproof.outputs.verdict`. The Action returns exit status 0 only on `IDENTITY_PASS` and nonzero for every failure. Failure categories are exposed even when the Action exits nonzero, so a testing workflow can assert the exact kind rather than treating every failure as a correct negative test.
 
-**Important:** The examples above are snippets and are not complete workflow YAML by themselves. The complete working workflow is `.github/workflows/pages-e2e.yml`; adapt its build and site URL to your own repository. The public Action reference above is intentionally **not yet installable** because this repo is still private and no public release exists.
+**Important:** The examples above are snippets and are not complete workflow YAML by themselves. The complete working workflow is `.github/workflows/pages-e2e.yml`; adapt its build and site URL to your own repository. The public Action reference above is an intentional **placeholder**, not a valid ref. Replace it with the full reviewed commit SHA from an available GitHub release; using a mutable tag has additional supply-chain risk.
 
 ## Compatibility and security boundaries
 
@@ -134,4 +134,4 @@ CI exercises a local loopback HTTP server, while the separate Pages E2E workflow
 
 ## License and status
 
-MIT — see [LICENSE](LICENSE). **Technical preview:** private repository, no public release, no verified external installations or user adoption. Sensitive security issues should not be disclosed via public issue comments; see [SECURITY.md](SECURITY.md).
+MIT — see [LICENSE](LICENSE). **Public technical preview:** see [GitHub Releases](https://github.com/eluyz/deployproof/releases) for current versions; no verified independent cross-repository installations or user adoption. Sensitive security issues should not be disclosed via public issue comments; see [SECURITY.md](SECURITY.md).
