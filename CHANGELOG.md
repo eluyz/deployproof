@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased] — main development (not in v0.1.0)
+
+### Fixed
+
+- Retry temporary HTTP 408, 429, 500, 502, 503 and 504 responses using the existing bounded attempt, delay and timeout settings; keep HTTP 403 and redirects fail-fast.
+- Limit live GitHub Pages E2E deployment to the `main` branch and rerun it when verifier code changes. This prevents preview branches from overwriting the shared public test site.
+- Added seven HTTP regression tests (30 total on `main`) and verified the current code against real GitHub Pages E2E: [CI](https://github.com/eluyz/deployproof/actions/runs/43822142520), [Pages E2E](https://github.com/eluyz/deployproof/actions/runs/43822142502).
+
+**Release notice:** These retry changes are only on `main`. The published
+`v0.1.0` prerelease is immutable and still points to
+`1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f`.
+Consumers pinned to `v0.1.0` do **not** receive the new retry behavior.
+No subsequent version has been released.
+
 ## [0.1.0] — Initial public technical preview (2026-11-14)
 
 ### Added
