@@ -69,6 +69,64 @@ class DeployProofTests(unittest.TestCase):
         self.set_manifest({**EXPECTED, "build_id": "outdated", "run_attempt": "1"})
         self.assertEqual(self.check().kind, "VERSION_MISMATCH")
 
+    def test_same_sha_different_run_attempt_detected(self):
+        """A SHA-only probe passes, while the trusted four-field check fails."""
+        sha = "a" * 40
+        stale = {
+            "git_sha": sha,
+            "workflow_run_id": "53001",
+            "run_attempt": "1",
+            "build_id": f"53001-1-{sha}",
+        }
+        current = {
+            **stale,
+            "run_attempt": "2",
+            "build_id": f"53001-2-{sha}",
+        }
+        self.set_manifest(stale)
+        # Models only the documented substring check, NOT execution of
+        # KaliCZ/verify-deployment itself.
+        self.assertIn(current["git_sha"], json.dumps(stale))
+        result = verify_module.verify(
+            self.site, "deployproof.json", current,
+            attempts=1, delay_seconds=0, allow_test_loopback=True,
+        )
+        self.assertEqual(result.kind, "VERSION_MISMATCH")
+        self.assertIn("run_attempt", result.details)
+        self.assertIn("build_id", result.details)
+
+    def test_generic_expected_build_id_can_detect_same_sha_stale_attempt(self):
+        """No exclusive stale-rerun capability is claimed for DeployProof."""
+        sha = "a" * 40
+        old = {"git_sha": sha, "workflow_run_id": "53001",
+               "run_attempt": "1", "build_id": f"53001-1-{sha}"}
+        new = {**old, "run_attempt": "2", "build_id": f"53001-2-{sha}"}
+        # A generic expected-content substring test targeting the unique
+        # build_id can also reject this stale response. This assertion only
+        # models documented string-search semantics, not competitor runtime.
+        self.assertNotIn(new["build_id"], json.dumps(old))
+        self.assertIn(new["build_id"], json.dumps(new))
+        self.assertIn(new["git_sha"], json.dumps(old))
+
+    def test_expected_text_in_unrelated_field_does_not_override_identity(self):
+        """Exact field matching avoids a synthetic substring false positive."""
+        sha = "a" * 40
+        expected = {"git_sha": sha, "workflow_run_id": "53001",
+                    "run_attempt": "2", "build_id": f"53001-2-{sha}"}
+        stale = {**expected, "run_attempt": "1",
+                 "build_id": f"53001-1-{sha}",
+                 "note": expected["build_id"]}
+        self.set_manifest(stale)
+        # Contrived scenario to show the semantic distinction: substring
+        # matching cannot tell whether text came from the identity field.
+        self.assertIn(expected["build_id"], json.dumps(stale))
+        result = verify_module.verify(
+            self.site, "deployproof.json", expected,
+            attempts=1, delay_seconds=0, allow_test_loopback=True,
+        )
+        self.assertEqual(result.kind, "VERSION_MISMATCH")
+        self.assertIn("build_id", result.details)
+
     def test_missing_manifest(self):
         self.assertEqual(self.check().kind, "MISSING_MANIFEST")
 

@@ -6,6 +6,14 @@ DeployProof is a small Python-standard-library composite GitHub Action that chec
 
 **Pinned v0.1.0:** `uses: eluyz/deployproof@1c03c9d4ace3855bf12fc7672c6d6a60cc072b8f` ([verified release](https://github.com/eluyz/deployproof/releases/tag/v0.1.0)). Use a reviewed full commit SHA rather than an unpinned branch.
 
+## What this checks — and what it cannot
+
+DeployProof verifies a **four-field build identity manifest**, not whether
+each asset is fresh. For a lower-setup alternative, a generic post-deploy
+HTTP check can compare an expected unique build ID. See the
+[evidence-based comparison](docs/PRODUCT_VALIDATION.md) before choosing
+whether DeployProof fits your GitHub Pages workflow.
+
 ## Start here — verify a real GitHub Pages deployment
 
 **New to the Action?** Follow the short
