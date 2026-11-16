@@ -3,8 +3,10 @@ name: Controlled GitHub Pages end-to-end test
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     paths:
       - .github/workflows/pages-e2e.yml
+      - scripts/verify.py
 
 permissions:
   contents: read
@@ -16,6 +18,8 @@ concurrency:
 jobs:
   build:
     name: Build synthetic test site
+    # A manual workflow_dispatch on a feature branch must never overwrite Pages.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
       git_sha: ${{ steps.identity.outputs.git_sha }}

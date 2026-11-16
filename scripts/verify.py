@@ -13,6 +13,9 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 MAX_MANIFEST_BYTES = 64 * 1024
 FIELDS = ("git_sha", "workflow_run_id", "run_attempt", "build_id")
+# Transient CDN/server responses can occur while Pages propagates an artifact.
+# Bounded retries also apply to HTTP 404 (manifest not published yet).
+RETRYABLE_HTTP_STATUSES = frozenset((408, 429, 500, 502, 503, 504))
 
 
 class BlockRedirects(HTTPRedirectHandler):
@@ -94,7 +97,11 @@ def _read_manifest(url, timeout_seconds):
     except HTTPError as exc:
         if exc.code == 404:
             return Result("MISSING_MANIFEST", "HTTP 404: public manifest is missing", True)
-        return Result("HTTP_ERROR", f"HTTP status {exc.code}")
+        return Result(
+            "HTTP_ERROR",
+            f"HTTP status {exc.code}",
+            exc.code in RETRYABLE_HTTP_STATUSES,
+        )
     except (URLError, OSError, TimeoutError) as exc:
         return Result("NETWORK_ERROR", f"Network request failed: {type(exc).__name__}", True)
     if len(content) > MAX_MANIFEST_BYTES:

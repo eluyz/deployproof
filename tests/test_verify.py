@@ -98,6 +98,69 @@ class DeployProofTests(unittest.TestCase):
         FakeSiteHandler.responses["/repo/deployproof.json"] = [(302, b"redirect")]
         self.assertEqual(self.check().kind, "HTTP_ERROR")
 
+    def test_retry_after_temporary_http_503(self):
+        FakeSiteHandler.responses["/repo/deployproof.json"] = [
+            (503, b"temporary service unavailable"),
+            (200, json.dumps(EXPECTED).encode()),
+        ]
+        result = verify_module.verify(
+            self.site, "deployproof.json", EXPECTED,
+            attempts=2, delay_seconds=0, allow_test_loopback=True,
+        )
+        self.assertEqual(result.kind, "IDENTITY_PASS")
+
+    def test_retry_after_http_429_rate_limit(self):
+        FakeSiteHandler.responses["/repo/deployproof.json"] = [
+            (429, b"rate limited"),
+            (200, json.dumps(EXPECTED).encode()),
+        ]
+        result = verify_module.verify(
+            self.site, "deployproof.json", EXPECTED,
+            attempts=2, delay_seconds=0, allow_test_loopback=True,
+        )
+        self.assertEqual(result.kind, "IDENTITY_PASS")
+
+    def test_http_408_request_timeout_is_retryable(self):
+        FakeSiteHandler.responses["/repo/deployproof.json"] = [
+            (408, b"timeout"),
+            (200, json.dumps(EXPECTED).encode()),
+        ]
+        result = verify_module.verify(
+            self.site, "deployproof.json", EXPECTED,
+            attempts=2, delay_seconds=0, allow_test_loopback=True,
+        )
+        self.assertEqual(result.kind, "IDENTITY_PASS")
+
+    def test_http_503_exhausts_configured_retry_budget(self):
+        FakeSiteHandler.responses["/repo/deployproof.json"] = [
+            (503, b"private server detail"),
+            (503, b"private server detail"),
+            (200, json.dumps(EXPECTED).encode()),
+        ]
+        result = verify_module.verify(
+            self.site, "deployproof.json", EXPECTED,
+            attempts=2, delay_seconds=0, allow_test_loopback=True,
+        )
+        self.assertEqual(result.kind, "HTTP_ERROR")
+        self.assertIn("503", result.details)
+        self.assertNotIn("private server detail", result.details)
+        # Only two requests should be made; the third response is unconsumed.
+        self.assertEqual(len(FakeSiteHandler.responses["/repo/deployproof.json"]), 1)
+
+    def test_http_403_does_not_retry(self):
+        FakeSiteHandler.responses["/repo/deployproof.json"] = [
+            (403, b"private denied details"),
+            (200, json.dumps(EXPECTED).encode()),
+        ]
+        result = verify_module.verify(
+            self.site, "deployproof.json", EXPECTED,
+            attempts=2, delay_seconds=0, allow_test_loopback=True,
+        )
+        self.assertEqual(result.kind, "HTTP_ERROR")
+        self.assertIn("403", result.details)
+        self.assertNotIn("private denied details", result.details)
+        self.assertEqual(len(FakeSiteHandler.responses["/repo/deployproof.json"]), 1)
+
     def test_retry_after_stale_manifest(self):
         FakeSiteHandler.responses["/repo/deployproof.json"] = [(200, json.dumps({**EXPECTED,"build_id":"old"}).encode()), (200, json.dumps(EXPECTED).encode())]
         result = verify_module.verify(self.site, "deployproof.json", EXPECTED, attempts=2, delay_seconds=0, allow_test_loopback=True)
