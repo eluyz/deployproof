@@ -148,7 +148,7 @@ After an Action step, other steps can use `steps.deployproof.outputs.verdict`. T
 
 - Only `https://*.github.io/` hosts are accepted. Use the exact site root with a trailing slash; project Pages sites need `https://OWNER.github.io/REPO/`. Custom domains (and their redirects), HTTP, IPs, credentials and nonstandard ports are not supported in this preview.
 - Manifest paths must be relative, without escapes/dot segments. HTTP redirects are not followed. Responses are limited to 64 KiB and duplicate JSON keys are rejected.
-- Requests have bounded retries, intervals and timeouts. Retries address publication delay, **not** an assurance of CDN-wide freshness.
+- Requests have bounded retries, intervals and timeouts. HTTP 404 and transient server/rate-limit responses (408, 429, 500, 502, 503, 504) are retryable; redirects and HTTP 403 fail without retry. Retries address publication delay, **not** an assurance of CDN-wide freshness.
 - The GitHub Pages manifest is public: the commit SHA, workflow run ID, attempt and build ID will be **public metadata**, even if the source repository is private. Never put secrets, tokens, internal URLs or personal data in it.
 - The public manifest is untrusted input; expected identity values must originate from the trusted build job. No cryptographic provenance is established.
 - The composite Action uses the runner's `python3` standard library. Review upstream runner/network settings and pinned Action dependencies before deploying production workloads.
