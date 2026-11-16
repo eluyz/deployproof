@@ -131,6 +131,31 @@ class DeployProofTests(unittest.TestCase):
         )
         self.assertEqual(result.kind, "IDENTITY_PASS")
 
+    def test_other_transient_server_statuses_retry(self):
+        for status in (500, 502, 504):
+            with self.subTest(status=status):
+                FakeSiteHandler.responses["/repo/deployproof.json"] = [
+                    (status, b"temporary backend failure"),
+                    (200, json.dumps(EXPECTED).encode()),
+                ]
+                result = verify_module.verify(
+                    self.site, "deployproof.json", EXPECTED,
+                    attempts=2, delay_seconds=0, allow_test_loopback=True,
+                )
+                self.assertEqual(result.kind, "IDENTITY_PASS")
+
+    def test_redirect_never_retries(self):
+        FakeSiteHandler.responses["/repo/deployproof.json"] = [
+            (302, b"do not follow this redirect"),
+            (200, json.dumps(EXPECTED).encode()),
+        ]
+        result = verify_module.verify(
+            self.site, "deployproof.json", EXPECTED,
+            attempts=2, delay_seconds=0, allow_test_loopback=True,
+        )
+        self.assertEqual(result.kind, "HTTP_ERROR")
+        self.assertEqual(len(FakeSiteHandler.responses["/repo/deployproof.json"]), 1)
+
     def test_http_503_exhausts_configured_retry_budget(self):
         FakeSiteHandler.responses["/repo/deployproof.json"] = [
             (503, b"private server detail"),
