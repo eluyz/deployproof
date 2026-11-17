@@ -150,13 +150,13 @@ After deploying, your **deploy job** must declare `needs: build` and can check t
 
 After an Action step, other steps can use `steps.deployproof.outputs.verdict`. The Action returns exit status 0 only on `IDENTITY_PASS` and nonzero for every failure. Failure categories are exposed even when the Action exits nonzero, so a testing workflow can assert the exact kind rather than treating every failure as a correct negative test.
 
-**Important:** The examples above are snippets and are not complete workflow YAML by themselves. The complete working workflow is `.github/workflows/pages-e2e.yml`; adapt its build and site URL to your own repository. The public Action reference above is pinned to the reviewed **v0.1.0 release commit SHA**. Review this commit before integrating; using a mutable version tag has additional supply-chain risk.
+**Important:** The snippets above are not complete workflow YAML. Start with the [copy-and-adapt Pages workflow](examples/pages-deploy-and-verify.yml) and the [Getting Started guide](docs/GETTING_STARTED.md); replace the demonstration build and your site's URL. The repo's `.github/workflows/pages-e2e.yml` is an **owner-controlled synthetic E2E test**, not a customer deployment template. The example Action reference is pinned to the reviewed **v0.1.0 release commit SHA**; review the commit before integrating. A mutable version tag has additional supply-chain risk.
 
 ## Compatibility and security boundaries
 
 - Only `https://*.github.io/` hosts are accepted. Use the exact site root with a trailing slash; project Pages sites need `https://OWNER.github.io/REPO/`. Custom domains (and their redirects), HTTP, IPs, credentials and nonstandard ports are not supported in this preview.
 - Manifest paths must be relative, without escapes/dot segments. HTTP redirects are not followed. Responses are limited to 64 KiB and duplicate JSON keys are rejected.
-- Requests have bounded retries, intervals and timeouts. HTTP 404 and transient server/rate-limit responses (408, 429, 500, 502, 503, 504) are retryable; redirects and HTTP 403 fail without retry. Retries address publication delay, **not** an assurance of CDN-wide freshness.
+- Requests have bounded retries, intervals and timeouts. **Published `v0.1.0`** retries HTTP 404, network errors and temporarily mismatched identity, but **does not retry other HTTP errors** such as 429 or 503. The improved 408/429/500/502/503/504 retries are currently **UNRELEASED on `main`** and require a later versioned release. Redirects and HTTP 403 fail without retry in both versions. Retries address publication delay, **not** an assurance of CDN-wide freshness.
 - The GitHub Pages manifest is public: the commit SHA, workflow run ID, attempt and build ID will be **public metadata**, even if the source repository is private. Never put secrets, tokens, internal URLs or personal data in it.
 - The public manifest is untrusted input; expected identity values must originate from the trusted build job. No cryptographic provenance is established.
 - The composite Action uses the runner's `python3` standard library. Review upstream runner/network settings and pinned Action dependencies before deploying production workloads.
@@ -170,6 +170,14 @@ python3 -m compileall -q scripts tests
 ```
 
 CI exercises a local loopback HTTP server, while the separate Pages E2E workflow tests an actual public HTTPS deployment, including intentionally failing checks and job re-runs. Passing these tests does not establish correctness for every site, custom domain, proxy or CDN configuration.
+
+## Marketplace and distribution
+
+This Action is **not currently listed on GitHub Marketplace**. See the
+[Marketplace readiness audit](docs/MARKETPLACE_READINESS.md) for confirmed
+technical prerequisites, owner-only steps, unreleased changes, and limits.
+A public GitHub Release does **not** imply a Marketplace listing or
+production certification. Independent third-party adoption is unverified.
 
 ## License and status
 
